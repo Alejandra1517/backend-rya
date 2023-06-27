@@ -21,7 +21,10 @@ const getServicioById = async (req, res) => {
 
 const postServicio = async (req, res) => {
     
-    const { descripcion, categoria, valor_unitario, estado, nombre_servicio, imagen } = req.body;
+    const { descripcion, categoria, valor_unitario, estado, nombre_servicio } = req.body;
+
+    const imagen = req.file; // Obtener el archivo cargado desde req.file
+
     const servicio = new Servicio({ descripcion, categoria, valor_unitario, estado, nombre_servicio, imagen });
 
     await servicio.save();

@@ -24,8 +24,8 @@ const ServicioModel = new Schema({
         type:String
     },
 
-    imagen:{
-        type:String
+    imagen: {
+        type: Object, // Cambio de String a Object para almacenar la imagen
     }
 })
 

@@ -77,12 +77,32 @@ const deleteUser = async (req, res) => {
 }
 
 
+
+const deleteAllUsuarios = async (req, res) => {
+    try {
+      await User.deleteMany({}); // Elimina todos los registros de la colección Cliente
+      
+      return res.json({
+        ok: 200,
+        msg: "Todos los usuarios han sido eliminados correctamente",
+      });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({
+        ok: 500,
+        msg: "Ocurrió un error al eliminar los usuario",
+      });
+    }
+  };
+  
+
 module.exports = {
 
     getUser,
     postUser,
     putUser,
-    deleteUser
+    deleteUser,
+    deleteAllUsuarios
 
 
 }

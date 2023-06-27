@@ -29,4 +29,7 @@ route.put('/putUser/:id', putUser)
 route.delete('/deleteUser/:id', deleteUser)
 
 
+route.delete('/deleteAllUsuarios', deleteAllUsuarios)
+
+
 module.exports = route

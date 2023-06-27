@@ -9,6 +9,15 @@ const modelUser = new Schema({
   nombre_completo: {
     type: String,
   },
+  documento: {
+    type: String,
+  },
+  telefono: {
+    type: String,
+  },
+  direccion: {
+    type: String,
+  },
   password: {
     type: String,
     required: [true, 'La contraseña es obligatoria'],
