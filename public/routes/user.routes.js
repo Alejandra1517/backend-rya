@@ -1,6 +1,6 @@
 const { Router } = require('express')
 
-const { getUser, postUser, putUser, deleteUser } = require('../controllers/users.controller')
+const { getUser, postUser, putUser, deleteUser, deleteAllUsuarios } = require('../controllers/users.controller')
 
 // const { check } = require('express-validator')
 

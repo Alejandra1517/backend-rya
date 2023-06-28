@@ -2,6 +2,7 @@
 const bcrypt = require('bcrypt')
 const User = require('../models/users.model')
 
+const Rol = require('../models/rol.model');
 
 const getUser = async (req, res) => {
 
@@ -19,26 +20,82 @@ const getUser = async (req, res) => {
 
 
 const postUser = async (req, res) => {
-
-    const { username, nombre_completo, password, estado, id_rol } =  req.body
-
-    const saveUser = new User( { username, nombre_completo, password, estado, id_rol } )
-
-
+  try {
+    const { username, nombre_completo, password, estado, id_rol } = req.body;
     
-    saveUser.password = bcrypt.hashSync(password, 10)
+    // Buscar el rol en la base de datos
+    const rol = await Rol.findById(id_rol);
 
+    const saveUser = new User({
+      username,
+      nombre_completo,
+      password,
+      estado,
+      id_rol, // Asignar el _id del rol al campo id_rol del usuario
+    });
 
-    await saveUser.save()
+    saveUser.password = bcrypt.hashSync(password, 10);
+
+    await saveUser.save();
+    
+
+    if (!rol) {
+      return res.status(404).json({
+        ok: false,
+        error: 'Rol no encontrado',
+      });
+    }
+
+    // Asignar los permisos del rol al usuario
+    saveUser.configuracion = rol.configuracion;
+    saveUser.usuarios = rol.usuarios;
+    saveUser.materiales = rol.materiales;
+    saveUser.servicios = rol.servicios;
+    saveUser.empleados = rol.empleados;
+    saveUser.clientes = rol.clientes;
+    saveUser.solicitudes = rol.solicitudes;
+    saveUser.cotizaciones = rol.cotizaciones;
+    saveUser.obras = rol.obras;
+
+    await saveUser.save();
 
     res.json({
+      ok: true,
+      msg: 'Usuario guardado correctamente',
+    });
+  } catch (error) {
+    console.log('Error al guardar el usuario:', error);
+    res.status(500).json({
+      ok: false,
+      error: 'Error al guardar el usuario',
+    });
+  }
+};
 
-        ok: 200,
-        msg: "Usuario guardado correctamente"
 
-    })
 
-}
+
+
+
+// const postUser = async (req, res) => {
+
+//     const { username, nombre_completo, password, estado, id_rol } =  req.body
+
+//     const saveUser = new User( { username, nombre_completo, password, estado, id_rol } )
+
+//     saveUser.password = bcrypt.hashSync(password, 10)
+
+
+//     await saveUser.save()
+
+//     res.json({
+
+//         ok: 200,
+//         msg: "Usuario guardado correctamente"
+
+//     })
+
+// }
 
 
 const putUser = async (req, res) => {
