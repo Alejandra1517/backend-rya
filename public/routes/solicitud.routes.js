@@ -3,7 +3,7 @@ const { getSolicitudes, postSolicitud, putSolicitud, deleteSolicitud } = require
 
 const route = Router();
 
-route.get('/getSolicituds', getSolicitudes);
+route.get('/getSolicitudes', getSolicitudes);
 
 route.post('/postSolicitud', postSolicitud);
 

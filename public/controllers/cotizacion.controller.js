@@ -1,7 +1,7 @@
-const Cotizacion = require('../models/Cotizacion.model')
+const Cotizacion = require('../models/cotizacion.model')
 
 
-const getCotizacion = async (req, res) => {
+const getCotizaciones = async (req, res) => {
 
     const Cotizaciones =  await Cotizacion.find()
 
@@ -15,9 +15,9 @@ const getCotizacion = async (req, res) => {
 
 const postCotizacion = async (req, res) => {
 
-    const { nombre_Cotizacion, documento, telefono, direccion, estado } =  req.body
+    const { servicio, cantidad, descripción, subtotal, fecha_vencimiento, mano_obra, total_servicio, estado_cotizacion_cliente, estado_cotizacion, estado_solicitud } =  req.body
 
-    const saveCotizacion = new Cotizacion( { nombre_Cotizacion, documento, telefono, direccion, estado } )
+    const saveCotizacion = new Cotizacion( { servicio, cantidad, descripción, subtotal, fecha_vencimiento, mano_obra, total_servicio, estado_cotizacion_cliente, estado_cotizacion, estado_solicitud } )
 
 
     await saveCotizacion.save()
@@ -36,9 +36,9 @@ const putCotizacion = async (req, res) => {
 
     const id = req.params.id
 
-    const { nombre_Cotizacion, documento, telefono, direccion, estado } =  req.body
+    const { servicio, cantidad, descripción, subtotal, fecha_vencimiento, mano_obra, total_servicio, estado_cotizacion_cliente, estado_cotizacion, estado_solicitud } =  req.body
 
-    const editCotizacion = await Cotizacion.findByIdAndUpdate(id, { nombre_Cotizacion, documento, telefono, direccion, estado })
+    const editCotizacion = await Cotizacion.findByIdAndUpdate(id, { servicio, cantidad, descripción, subtotal, fecha_vencimiento, mano_obra, total_servicio, estado_cotizacion_cliente, estado_cotizacion, estado_solicitud })
 
 
 
@@ -67,7 +67,7 @@ const deleteCotizacion = async (req, res) => {
 
 }
 
-const deleteAllCotizacions = async (req, res) => {
+const deleteAllCotizaciones = async (req, res) => {
     try {
       await Cotizacion.deleteMany({}); // Elimina todos los registros de la colección Cotizacion
       
@@ -88,11 +88,11 @@ const deleteAllCotizacions = async (req, res) => {
 
 module.exports = {
 
-    getCotizacion,
+    getCotizaciones,
     postCotizacion,
     putCotizacion,
     deleteCotizacion,
-    deleteAllCotizacions
+    deleteAllCotizaciones
 
 
 }

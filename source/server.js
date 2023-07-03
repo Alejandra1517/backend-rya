@@ -67,7 +67,11 @@ class Server {
 
         this.app.use('/api',  require('../public/routes/rol.routes'))
         
-        this.app.use('/api',  require('../public/routes/solicitud.routes'))
+        this.app.use('/api',  require('../public/routes/solicitud.routes')),
+
+        this.app.use('/api',  require('../public/routes/cotizacion.routes')),
+
+        this.app.use('/api',  require('../public/routes/obras.routes'))
 
     }
 

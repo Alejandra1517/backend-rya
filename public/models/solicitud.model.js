@@ -1,9 +1,18 @@
 const { Schema, model } = require('mongoose');
 
 const SolicitudModel = new Schema({
-    
+ 
+    asunto_solicitud:{
+        type:String
+    },
+
     nombre_cliente:{
         type:String
+    },
+
+
+    categoria_servicio:{
+        type:Number
     },
 
     servicio:{
@@ -17,39 +26,14 @@ const SolicitudModel = new Schema({
     descripción:{
         type:String
     },
-
-    subtotal:{
-        type:Number
-    },
-
-    fecha_vencimiento:{
-        type:Number
-    },
-
-    mano_obra:{
-        type:Number
-    },
-
-    categoria_servicio:{
-        type:String
-    },
-
-    total_servicio:{
-        type:Number
-    },
     
-    nombre_material :{
-        type:String
-    },
-
-    precio_unitario:{
-        type:Number
-    },
-    
-    estado:{
+    estado_solicitud:{
         type:Number
     },
 
+    fecha_envio:{
+        type:Date
+    },
  
 })
 

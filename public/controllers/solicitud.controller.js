@@ -16,9 +16,9 @@ const getSolicitudes = async (req, res) => {
 
 const postSolicitud = async (req, res) => {
 
-    const { nombre_cliente, estado, servicio, descripción, cantidad, subtotal, fecha_vencimiento, mano_obra, categoria_servicio, total_servicio, nombre_material, precio_unitario } =  req.body
+    const { nombre_cliente, categoria_servicio, servicio, cantidad, descripción, estado_solicitud, fecha_envio } =  req.body
 
-    const saveSolicitud = new Solicitud( { nombre_cliente, estado, servicio, descripción, cantidad, subtotal, fecha_vencimiento, mano_obra, categoria_servicio, total_servicio, nombre_material, precio_unitario } )
+    const saveSolicitud = new Solicitud( {  nombre_cliente, categoria_servicio, servicio, cantidad, descripción, estado_solicitud, fecha_envio } )
 
 
     await saveSolicitud.save()
@@ -37,9 +37,9 @@ const putSolicitud = async (req, res) => {
 
     const id = req.params.id
 
-    const { nombre_cliente, estado, servicio, descripción, cantidad, subtotal, fecha_vencimiento, mano_obra, categoria_servicio, total_servicio, nombre_material, precio_unitario } =  req.body
+    const { nombre_cliente, categoria_servicio, servicio, cantidad, descripción, estado_solicitud, fecha_envio} =  req.body
 
-    const editSolicitud = await Solicitud.findByIdAndUpdate(id, { nombre_cliente, estado, servicio, descripción, cantidad, subtotal, fecha_vencimiento, mano_obra, categoria_servicio, total_servicio, nombre_material, precio_unitario })
+    const editSolicitud = await Solicitud.findByIdAndUpdate(id, { nombre_cliente, categoria_servicio, servicio, cantidad, descripción, estado_solicitud, fecha_envio })
 
 
 
