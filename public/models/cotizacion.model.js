@@ -10,6 +10,9 @@ const CotizacionModel = new Schema({
 
     servicios: [{ type: mongoose.Schema.Types.ObjectId, ref: 'servicio' }],
     
+    nombre_cliente:{
+        type:String
+    },
 
     servicio:{
         type:String,
