@@ -15,42 +15,62 @@ const getSolicitudes = async (req, res) => {
 
 
 const postSolicitud = async (req, res) => {
+  try {
+    const { nombre_cliente, categoria_servicio, servicio, cantidad, descripción, estado_solicitud, fecha_envio } = req.body;
+    // const servicios = req.body.servicios; // Agregar esta línea para obtener los servicios enviados en la solicitud
 
-    const { nombre_cliente, categoria_servicio, servicio, cantidad, descripción, estado_solicitud, fecha_envio } =  req.body
+    const saveSolicitud = new Solicitud({ nombre_cliente, categoria_servicio, servicio, cantidad, descripción, estado_solicitud, fecha_envio });
 
-    const saveSolicitud = new Solicitud( {  nombre_cliente, categoria_servicio, servicio, cantidad, descripción, estado_solicitud, fecha_envio } )
+    // Agregar los servicios a la solicitud
+    // if (servicios && servicios.length > 0) {
+    //   const serviciosIds = await servicio.find({ _id: { $in: servicios } }, '_id');
+    //   saveSolicitud.servicios = serviciosIds;
+    // }
 
-
-    await saveSolicitud.save()
+    await saveSolicitud.save();
 
     res.json({
-
-        ok: 200,
-        msg: "Solicitud guardado correctamente"
-
-    })
-
-}
-
+      ok: 200,
+      msg: 'Solicitud guardada correctamente',
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error interno del servidor.' });
+  }
+};
 
 const putSolicitud = async (req, res) => {
+  try {
+    const id = req.params.id;
+    const { nombre_cliente, categoria_servicio, servicio, cantidad, descripción, estado_solicitud, fecha_envio } = req.body;
+    // const servicios = req.body.servicios; // Agregar esta línea para obtener los servicios enviados en la solicitud
 
-    const id = req.params.id
+    const editSolicitud = await Solicitud.findByIdAndUpdate(
+      id,
+      { nombre_cliente, categoria_servicio, servicio, cantidad, descripción, estado_solicitud, fecha_envio },
+      { new: true }
+    );
 
-    const { nombre_cliente, categoria_servicio, servicio, cantidad, descripción, estado_solicitud, fecha_envio} =  req.body
+    // // Actualizar los servicios de la solicitud
+    // if (servicios && servicios.length > 0) {
+    //   const serviciosIds = await servicio.find({ _id: { $in: servicios } }, '_id');
+    //   editSolicitud.servicios = serviciosIds;
+    // } else {
+    //   editSolicitud.servicios = []; // Si no se envían servicios, se vacía el array de servicios de la solicitud
+    // }
 
-    const editSolicitud = await Solicitud.findByIdAndUpdate(id, { nombre_cliente, categoria_servicio, servicio, cantidad, descripción, estado_solicitud, fecha_envio })
-
-
+    await editSolicitud.save();
 
     res.json({
+      ok: 200,
+      msg: 'Solicitud editada correctamente',
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error interno del servidor.' });
+  }
+};
 
-        ok: 200,
-        msg: "Solicitud editado correctamente"
-
-    })
-
-}
 
 
 const deleteSolicitud = async (req, res) => {

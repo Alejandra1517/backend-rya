@@ -25,9 +25,18 @@ const ServicioModel = new Schema({
     },
 
     imagen: {
-        type: Object, // Cambio de String a Object para almacenar la imagen
+        type: String, // Cambio de String a Object para almacenar la imagen
     }
-})
+});
+
+ServicioModel.set('toJSON', {
+    transform: function (doc, ret) {
+      ret.servicios = ret._id; // Renombra _id a id_rol
+      delete ret._id; // Elimina el campo _id
+      delete ret.__v; // Elimina el campo __v
+    }
+  });
+  
 
 
 

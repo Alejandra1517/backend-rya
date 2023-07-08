@@ -21,7 +21,15 @@ const MaterialModel = new Schema({
 
     }
 
-})
+});
+
+MaterialModel.set('toJSON', {
+  transform: function (doc, ret) {
+    ret.material = ret._id; // Renombra _id a id_rol
+    delete ret._id; // Elimina el campo _id
+    delete ret.__v; // Elimina el campo __v
+  }
+});
 
 
 // Opción toJSON para cambiar el formato de la fecha al convertir a JSON

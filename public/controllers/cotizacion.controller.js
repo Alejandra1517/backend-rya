@@ -15,9 +15,9 @@ const getCotizaciones = async (req, res) => {
 
 const postCotizacion = async (req, res) => {
 
-    const { servicio, cantidad, descripción, subtotal, fecha_vencimiento, mano_obra, total_servicio, estado_cotizacion_cliente, estado_cotizacion, estado_solicitud } =  req.body
+    const { solicitud, materiales, servicios, servicio, cantidad, descripción, subtotal, fecha_vencimiento, mano_obra, total_servicio, estado_cotizacion_cliente, estado_cotizacion, estado_solicitud } =  req.body
 
-    const saveCotizacion = new Cotizacion( { servicio, cantidad, descripción, subtotal, fecha_vencimiento, mano_obra, total_servicio, estado_cotizacion_cliente, estado_cotizacion, estado_solicitud } )
+    const saveCotizacion = new Cotizacion( { solicitud, materiales, servicios, servicio, cantidad, descripción, subtotal, fecha_vencimiento, mano_obra, total_servicio, estado_cotizacion_cliente, estado_cotizacion, estado_solicitud } )
 
 
     await saveCotizacion.save()

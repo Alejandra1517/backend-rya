@@ -3,21 +3,20 @@ const { Schema, model } = require('mongoose');
 
 const CotizacionModel = new Schema({
 
-
     solicitud: { type: mongoose.Schema.Types.ObjectId, ref: 'solicitud' },
-
+    
     materiales: [{ type: mongoose.Schema.Types.ObjectId, ref: 'material' }],
-
+    
     servicios: [{ type: mongoose.Schema.Types.ObjectId, ref: 'servicio' }],
     
     nombre_cliente:{
         type:String
     },
-
+    
     servicio:{
         type:String,
     },
-
+    
     cantidad:{
         type:Number
     },
@@ -25,25 +24,25 @@ const CotizacionModel = new Schema({
     descripción:{
         type:String
     },
-
+    
     subtotal:{
         type:Number
     },
-
+    
     fecha_vencimiento:{
         type:Date
     },
-
+    
     mano_obra:{
         type:Number
     },
-
-
+    
+    
     total_servicio:{
         type:Number
     },
-
-
+    
+    
     estado_cotizacion_cliente:{  //Estado que le pone el cliente a la cotización
         type:Number,
         default: 4
@@ -57,7 +56,7 @@ const CotizacionModel = new Schema({
     estado_solicitud:{
         type:Number
     }
-
+    
 })
 
 
