@@ -22,9 +22,16 @@ const getUser = async (req, res) => {
 const postUser = async (req, res) => {
   try {
     const { username, nombre_completo, password, estado, id_rol } = req.body;
-    
+
     // Buscar el rol en la base de datos
     const rol = await Rol.findById(id_rol);
+
+    if (!rol) {
+      return res.status(404).json({
+        ok: false,
+        error: 'Rol no encontrado',
+      });
+    }
 
     const saveUser = new User({
       username,
@@ -35,16 +42,6 @@ const postUser = async (req, res) => {
     });
 
     saveUser.password = bcrypt.hashSync(password, 10);
-
-    await saveUser.save();
-    
-
-    if (!rol) {
-      return res.status(404).json({
-        ok: false,
-        error: 'Rol no encontrado',
-      });
-    }
 
     // Asignar los permisos del rol al usuario
     saveUser.configuracion = rol.configuracion;
@@ -75,47 +72,71 @@ const postUser = async (req, res) => {
 
 
 
-
-
-// const postUser = async (req, res) => {
-
-//     const { username, nombre_completo, password, estado, id_rol } =  req.body
-
-//     const saveUser = new User( { username, nombre_completo, password, estado, id_rol } )
-
-//     saveUser.password = bcrypt.hashSync(password, 10)
-
-
-//     await saveUser.save()
-
-//     res.json({
-
-//         ok: 200,
-//         msg: "Usuario guardado correctamente"
-
-//     })
-
-// }
-
-
 const putUser = async (req, res) => {
+  try {
+    const id = req.params.id;
+    const { username, nombre_completo, password, estado, id_rol } = req.body;
 
-    const id = req.params.id
+    // Buscar el rol en la base de datos
+    const rol = await Rol.findById(id_rol);
 
-    const { username, nombre_completo, password, estado, rol } =  req.body
+    // Verificar si se encontró el rol
+    if (!rol) {
+      return res.status(404).json({
+        ok: false,
+        error: 'Rol no encontrado',
+      });
+    }
 
-    const editUser = await User.findByIdAndUpdate(id, { username, nombre_completo, password, estado, rol })
+    // Actualizar los datos del usuario
+    const updatedUser = await User.findByIdAndUpdate(
+      id,
+      {
+        username,
+        nombre_completo,
+        password,
+        estado,
+        id_rol, // Asignar el _id del rol al campo id_rol del usuario
+        configuracion: rol.configuracion,
+        usuarios: rol.usuarios,
+        materiales: rol.materiales,
+        servicios: rol.servicios,
+        empleados: rol.empleados,
+        clientes: rol.clientes,
+        solicitudes: rol.solicitudes,
+        cotizaciones: rol.cotizaciones,
+        obras: rol.obras,
+      },
+      { new: true } // Para obtener el usuario actualizado en la respuesta
+    );
 
+    // Actualizar los permisos del usuario según los permisos del rol
+    updatedUser.configuracion = rol.configuracion;
+    updatedUser.usuarios = rol.usuarios;
+    updatedUser.materiales = rol.materiales;
+    updatedUser.servicios = rol.servicios;
+    updatedUser.empleados = rol.empleados;
+    updatedUser.clientes = rol.clientes;
+    updatedUser.solicitudes = rol.solicitudes;
+    updatedUser.cotizaciones = rol.cotizaciones;
+    updatedUser.obras = rol.obras;
 
+    // Guardar los cambios en el usuario
+    await updatedUser.save();
 
     res.json({
-
-        ok: 200,
-        msg: "Usuario editado correctamente"
-
-    })
-
-}
+      ok: true,
+      msg: 'Usuario editado correctamente',
+      user: updatedUser,
+    });
+  } catch (error) {
+    console.log('Error al editar el usuario:', error);
+    res.status(500).json({
+      ok: false,
+      error: 'Error al editar el usuario',
+    });
+  }
+};
 
 
 const deleteUser = async (req, res) => {
