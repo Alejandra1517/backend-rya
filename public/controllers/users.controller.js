@@ -21,7 +21,7 @@ const getUser = async (req, res) => {
 
 const postUser = async (req, res) => {
   try {
-    const { username, nombre_completo, password, estado, id_rol } = req.body;
+    const { username, nombre_completo, documento, telefono, direccion, password, estado, id_rol } = req.body;
 
     // Buscar el rol en la base de datos
     const rol = await Rol.findById(id_rol);
@@ -36,9 +36,12 @@ const postUser = async (req, res) => {
     const saveUser = new User({
       username,
       nombre_completo,
+      documento,
+      telefono,
+      direccion,
       password,
       estado,
-      id_rol, // Asignar el _id del rol al campo id_rol del usuario
+      id_rol // Asignar el _id del rol al campo id_rol del usuario
     });
 
     saveUser.password = bcrypt.hashSync(password, 10);

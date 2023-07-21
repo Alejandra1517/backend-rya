@@ -10,11 +10,6 @@ const SolicitudModel = new Schema({
         type:String
     },
 
-
-    categoria_servicio:{
-        type:Number
-    },
-
     servicio:{
         type:String,
     },
