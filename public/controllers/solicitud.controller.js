@@ -13,40 +13,14 @@ const getSolicitudes = async (req, res) => {
 }
 
 
-
-// const postSolicitud = async (req, res) => {
-//   try {
-//     const { nombre_cliente, categoria_servicio, servicio, cantidad, descripción, estado_solicitud, fecha_envio } = req.body;
-//     // const servicios = req.body.servicios; // Agregar esta línea para obtener los servicios enviados en la solicitud
-
-//     const saveSolicitud = new Solicitud({ nombre_cliente, categoria_servicio, servicio, cantidad, descripción, estado_solicitud, fecha_envio });
-
-//     // Agregar los servicios a la solicitud
-//     // if (servicios && servicios.length > 0) {
-//     //   const serviciosIds = await servicio.find({ _id: { $in: servicios } }, '_id');
-//     //   saveSolicitud.servicios = serviciosIds;
-//     // }
-
-//     await saveSolicitud.save();
-
-//     res.json({
-//       ok: 200,
-//       msg: 'Solicitud guardada correctamente',
-//     });
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ error: 'Error interno del servidor.' });
-//   }
-// };
-
-
 const postSolicitud = async (req, res) => {
   try {
-    const { nombre_cliente, cantidad, descripcion, estado_solicitud, fecha_envio } = req.body;
+    const { nombre_cliente, asunto, cantidad, descripcion, estado_solicitud, fecha_envio } = req.body;
     const serviciosIds = req.body.servicios; // Obtén los IDs de los servicios enviados en la solicitud
 
     const saveSolicitud = new Solicitud({
       nombre_cliente,
+      asunto,
       cantidad,
       descripcion,
       estado_solicitud,
@@ -70,7 +44,7 @@ const postSolicitud = async (req, res) => {
 const putSolicitud = async (req, res) => {
   try {
     const id = req.params.id;
-    const { nombre_cliente, cantidad, descripcion, estado_solicitud, fecha_envio } = req.body;
+    const { nombre_cliente, asunto, cantidad, descripcion, estado_solicitud, fecha_envio } = req.body;
     const servicioId = req.body.servicioId; // Agregar esta línea para obtener el ID del servicio seleccionado en la solicitud
 
     // Primero, encuentra la solicitud existente por su ID
@@ -82,6 +56,7 @@ const putSolicitud = async (req, res) => {
 
     // Luego, actualiza los campos de la solicitud con los valores enviados en el cuerpo de la solicitud
     editSolicitud.nombre_cliente = nombre_cliente;
+    editSolicitud.asunto = asunto;
     editSolicitud.cantidad = cantidad;
     editSolicitud.descripcion = descripcion;
     editSolicitud.estado_solicitud = estado_solicitud;
@@ -115,57 +90,30 @@ const putSolicitud = async (req, res) => {
 };
 
 
-
-// const putSolicitud = async (req, res) => {
-//   try {
-//     const id = req.params.id;
-//     const { nombre_cliente, categoria_servicio, servicio, cantidad, descripción, estado_solicitud, fecha_envio } = req.body;
-//     // const servicios = req.body.servicios; // Agregar esta línea para obtener los servicios enviados en la solicitud
-
-//     const editSolicitud = await Solicitud.findByIdAndUpdate(
-//       id,
-//       { nombre_cliente, categoria_servicio, servicio, cantidad, descripción, estado_solicitud, fecha_envio },
-//       { new: true }
-//     );
-
-//     // // Actualizar los servicios de la solicitud
-//     // if (servicios && servicios.length > 0) {
-//     //   const serviciosIds = await servicio.find({ _id: { $in: servicios } }, '_id');
-//     //   editSolicitud.servicios = serviciosIds;
-//     // } else {
-//     //   editSolicitud.servicios = []; // Si no se envían servicios, se vacía el array de servicios de la solicitud
-//     // }
-
-//     await editSolicitud.save();
-
-//     res.json({
-//       ok: 200,
-//       msg: 'Solicitud editada correctamente',
-//     });
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ error: 'Error interno del servidor.' });
-//   }
-// };
-
-
-
-
-
 const deleteSolicitud = async (req, res) => {
+  try {
+    const id = req.params.id;
 
-    const  id = req.params.id
+    // Primero, intenta encontrar la solicitud por su ID
+    const solicitud = await Solicitud.findById(id);
 
-    const deleteSolicitud = await Solicitud.findByIdAndDelete(id)
+    if (!solicitud) {
+      // Si la solicitud no existe, devuelve un error 404
+      return res.status(404).json({ error: 'La solicitud no existe.' });
+    }
+
+    // Si la solicitud existe, procede a eliminarla
+    await Solicitud.findByIdAndDelete(id);
 
     return res.json({
-
-        ok: 200,
-        msg: "Solicitud eliminado correctamente"
-
-    })
-
-}
+      ok: 200,
+      msg: 'Solicitud eliminada correctamente',
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: 'Error interno del servidor.' });
+  }
+};
 
 const deleteAllsolicitudes = async (req, res) => {
     try {

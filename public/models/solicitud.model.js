@@ -7,6 +7,9 @@ const SolicitudModel = new Schema({
     nombre_cliente: {
       type: String
     },
+    asunto: {
+      type: String
+    },
     cantidad: {
       type: Number
     },
