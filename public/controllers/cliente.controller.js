@@ -21,16 +21,11 @@ const postCliente = async (req, res) => {
 
     const saveCliente = new Cliente( { nombre_cliente, documento, telefono, direccion, estado } )
 
-
     await saveCliente.save()
-
     res.json({
-
         ok: 200,
         msg: "Cliente guardado correctamente"
-
     })
-
 }
 
 
@@ -41,7 +36,6 @@ const putCliente = async (req, res) => {
     const { nombre_cliente, documento, telefono, direccion, estado } =  req.body
 
     const editCliente = await Cliente.findByIdAndUpdate(id, { nombre_cliente, documento, telefono, direccion, estado })
-
 
 
     res.json({
