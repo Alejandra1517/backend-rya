@@ -2,28 +2,22 @@ const mongoose = require('mongoose');
 
 const { Schema, model } = require('mongoose');
 
+
 const SolicitudModel = new Schema({
-    servicios: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Servicio' }],
-    nombre_cliente: {
-      type: String
+  servicios: [
+    {
+      servicio: { type: mongoose.Schema.Types.ObjectId, ref: 'Servicio' }, // Referencia al servicio registrado
+      personalizado: { type: Boolean, default: false }, // Indica si el servicio es personalizado
+      cantidad: { type: Number },
+      descripcion: { type: String },
     },
-    asunto: {
-      type: String
-    },
-    cantidad: {
-      type: Number
-    },
-    descripcion: {
-      type: String
-    },
-    estado_solicitud: {
-      type: Number
-    },
-    fecha_envio: {
-      type: Date
-    },
-  });
-  
+  ],
+  nombre_cliente: { type: String },
+  asunto: { type: String },
+  estado_solicitud: { type: Number },
+  fecha_envio: { type: Date },
+});
+
 
 SolicitudModel.set('toJSON', {
   transform: function (doc, ret) {
@@ -34,6 +28,37 @@ SolicitudModel.set('toJSON', {
 });
 
 module.exports = model('Solicitud', SolicitudModel);
+
+
+
+
+
+
+
+
+
+// const SolicitudModel = new Schema({
+//     servicios: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Servicio' }],
+//     nombre_cliente: {
+//       type: String
+//     },
+//     asunto: {
+//       type: String
+//     },
+//     cantidad: {
+//       type: Number
+//     },
+//     descripcion: {
+//       type: String
+//     },
+//     estado_solicitud: {
+//       type: Number
+//     },
+//     fecha_envio: {
+//       type: Date
+//     }
+//   });
+  
 
 
 // const mongoose = require('mongoose');
