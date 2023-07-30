@@ -2,6 +2,8 @@
 const bcrypt = require('bcrypt')
 const User = require('../models/users.model')
 
+const Cliente = require('../models/cliente.model')
+
 const Rol = require('../models/rol.model');
 
 const getUser = async (req, res) => {
@@ -21,10 +23,12 @@ const getUser = async (req, res) => {
 
 const postUser = async (req, res) => {
   try {
-    const { username, nombre_completo, documento, telefono, direccion, password, estado, id_rol } = req.body;
+    const { nombre_completo, correo, contrasena, documento, telefono, direccion, estado, id_rol } = req.body;
+
 
     // Buscar el rol en la base de datos
     const rol = await Rol.findById(id_rol);
+
 
     if (!rol) {
       return res.status(404).json({
@@ -33,20 +37,22 @@ const postUser = async (req, res) => {
       });
     }
 
+    // Creamos el usuario con los datos recibidos en la solicitud
     const saveUser = new User({
-      username,
       nombre_completo,
+      correo,
+      contrasena,
       documento,
       telefono,
       direccion,
-      password,
       estado,
       id_rol // Asignar el _id del rol al campo id_rol del usuario
     });
 
-    saveUser.password = bcrypt.hashSync(password, 10);
 
-    // Asignar los permisos del rol al usuario
+    saveUser.contrasena = bcrypt.hashSync(contrasena, 10);
+
+    // Asignar los permisos del rol al usuario (tal como lo tenías antes)
     saveUser.configuracion = rol.configuracion;
     saveUser.usuarios = rol.usuarios;
     saveUser.materiales = rol.materiales;
@@ -56,6 +62,25 @@ const postUser = async (req, res) => {
     saveUser.solicitudes = rol.solicitudes;
     saveUser.cotizaciones = rol.cotizaciones;
     saveUser.obras = rol.obras;
+
+    // Verificar si el rol del usuario es "cliente" para crear un registro en la tabla de clientes
+    if (rol.id.toString() === "64c6538864a92a69719c9373") {
+      const saveCliente = new Cliente({
+        nombre_cliente: nombre_completo,
+        correo,
+        contrasena,
+        documento,
+        telefono,
+        direccion,
+        estado,
+      });
+
+      saveCliente.contrasena = bcrypt.hashSync(contrasena, 10);
+
+      await saveCliente.save();
+
+
+    }
 
     await saveUser.save();
 
@@ -74,11 +99,10 @@ const postUser = async (req, res) => {
 
 
 
-
 const putUser = async (req, res) => {
   try {
     const id = req.params.id;
-    const { username, nombre_completo, password, estado, id_rol } = req.body;
+    const { nombre_completo, correo, contrasena, estado, id_rol } = req.body;
 
     // Buscar el rol en la base de datos
     const rol = await Rol.findById(id_rol);
@@ -95,9 +119,9 @@ const putUser = async (req, res) => {
     const updatedUser = await User.findByIdAndUpdate(
       id,
       {
-        username,
         nombre_completo,
-        password,
+        correo,
+        contrasena,
         estado,
         id_rol, // Asignar el _id del rol al campo id_rol del usuario
         configuracion: rol.configuracion,
@@ -124,6 +148,34 @@ const putUser = async (req, res) => {
     updatedUser.cotizaciones = rol.cotizaciones;
     updatedUser.obras = rol.obras;
 
+    // Verificar si el rol del usuario es "cliente" para crear o actualizar el registro en la tabla de clientes
+    if (rol.id.toString() === "64c6538864a92a69719c9373") {
+      const clientWithSameEmail = await Cliente.findOne({ correo: updatedUser.correo });
+
+      if (clientWithSameEmail) {
+        // Si se encontró un cliente con el mismo correo, actualizamos sus datos
+        clientWithSameEmail.nombre_cliente = updatedUser.nombre_completo;
+        clientWithSameEmail.documento = updatedUser.documento;
+        clientWithSameEmail.telefono = updatedUser.telefono;
+        clientWithSameEmail.direccion = updatedUser.direccion;
+        clientWithSameEmail.estado = updatedUser.estado;
+        await clientWithSameEmail.save();
+      } else {
+        // Si no se encontró un cliente con el mismo correo, creamos un nuevo registro en la tabla de clientes
+        const newCliente = new Cliente({
+          nombre_cliente: updatedUser.nombre_completo,
+          correo: updatedUser.correo,
+          contrasena: updatedUser.contrasena,
+          documento: updatedUser.documento,
+          telefono: updatedUser.telefono,
+          direccion: updatedUser.direccion,
+          estado: updatedUser.estado,
+        });
+
+        await newCliente.save();
+      }
+    }
+
     // Guardar los cambios en el usuario
     await updatedUser.save();
 
@@ -140,6 +192,7 @@ const putUser = async (req, res) => {
     });
   }
 };
+
 
 
 const deleteUser = async (req, res) => {

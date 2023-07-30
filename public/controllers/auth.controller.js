@@ -14,11 +14,11 @@ const { generarJwt } = require('../helpers/jwt')
 
 const postAuth = async (req = request, res = response ) => {
 
-    const { username, password } =  req.body
+    const { correo, contrasena } =  req.body
 
     try {
 
-        const usuario = await User.findOne( { username })
+        const usuario = await User.findOne( { correo })
 
         if(!usuario){
             return res.status(400).json({
@@ -36,7 +36,7 @@ const postAuth = async (req = request, res = response ) => {
         }
 
 
-        const compararContrasena = bycrypt.compareSync(password, usuario.password)
+        const compararContrasena = bycrypt.compareSync(contrasena, usuario.contrasena)
 
         if(!compararContrasena){
 
@@ -63,8 +63,8 @@ const postAuth = async (req = request, res = response ) => {
 
         const token = await generarJwt( 
 
-            usuario.username,
-            usuario.password,
+            usuario.correo,
+            usuario.contrasena,
             usuario.estado,
             usuario.id_rol,
             rol // Agregar el rol al token
@@ -109,12 +109,12 @@ const getActualUser = async (req, res) => {
     try {
       const decodedToken = jwt.verify(tokenWithoutBearer, process.env.SECRETKEY);
 
-      const username = decodedToken.username;
+      const correo = decodedToken.correo;
 
       console.log("Token Decodificado:", decodedToken);
-      console.log("Username:", username);
+      console.log("correo:", correo);
 
-      const usuario = await User.findOne({ username });
+      const usuario = await User.findOne({ correo });
 
       if (!usuario) {
         return res.status(404).json({
@@ -139,78 +139,6 @@ const getActualUser = async (req, res) => {
     });
   }
 };
-
-
-
-
-
-
-
-
-
-
-
-
-// const getActualUser = async (req, res) => {
-//   try {
-//     const token = req.headers.authorization; // Obtener el token de autorización del encabezado
-  
-//     // Verificar si se proporcionó un token
-//     if (!token) {
-//       return res.status(401).json({
-//         msg: "No se proporcionó un token de autorización",
-//       });
-//     }
-  
-//     // Extraer el token del encabezado (eliminar "Bearer " del comienzo)
-//     const tokenWithoutBearer = token.replace("Bearer ", "");
-  
-//     try {
-//       const decodedToken = jwt.verify(tokenWithoutBearer, process.env.SECRETKEY); 
-  
-//       const username = decodedToken.username;
-  
-
-//       const usuario = await User.findOne({ username });
-  
-//       if (!usuario) {
-//         return res.status(404).json({
-//           msg: "Usuario no encontrado",
-//         });
-//       }
-  
-
-//          // Obtener los módulos del rol almacenado en el token
-//          const rol = decodedToken.rol;
-
-//          const modulos = {
-//            configuracion: rol.configuracion,
-//            usuarios: rol.usuarios,
-//            materiales: rol.materiales,
-//            servicios: rol.servicios,
-//            empleados: rol.empleados,
-//            clientes: rol.clientes,
-//            solicitudes: rol.solicitudes,
-//            cotizaciones: rol.cotizaciones,
-//            obras: rol.obras,
-//          };
-
-
-
-//       res.json(usuario);
-//     } catch (error) {
-//       console.log(error);
-//       res.status(401).json({
-//         msg: "Token de autorización inválido o expirado",
-//       });
-//     }
-//   } catch (error) {
-//     console.log(error);
-//     res.status(500).json({
-//       msg: "Error 500! Comunícate con el administrador",
-//     });
-//   }
-// };
 
 
   

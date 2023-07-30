@@ -4,7 +4,6 @@ const roleSchema = new Schema({
 
   nombre_rol: {                                    
     type: String,
-    unique: true
   },
   estado: {
     type: Number

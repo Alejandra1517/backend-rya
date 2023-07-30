@@ -4,12 +4,16 @@ const { Schema, model } = mongoose;
 
 const modelUser = new Schema({
 
-  username: {
+  nombre_completo: {
+    type: String,
+  },
+  correo: {
     type: String,
     unique: true
   },
-  nombre_completo: {
+  contrasena: {
     type: String,
+    required: [true, 'La contraseña es obligatoria'],
   },
   documento: {
     type: String,
@@ -19,10 +23,6 @@ const modelUser = new Schema({
   },
   direccion: {
     type: String,
-  },
-  password: {
-    type: String,
-    required: [true, 'La contraseña es obligatoria'],
   },
   estado: {
     type: Number,
@@ -69,33 +69,3 @@ const modelUser = new Schema({
 });
 
 module.exports = model('user', modelUser);
-
-
-// const modelUser = new Schema({
-//   username: {
-//     type: String,
-//     unique: true,
-//   },
-//   nombre_completo: {
-//     type: String,
-//   },
-//   documento: {
-//     type: String,
-//   },
-//   telefono: {
-//     type: String,
-//   },
-//   direccion: {
-//     type: String,
-//   },
-//   password: {
-//     type: String,
-//     required: [true, 'La contraseña es obligatoria'],
-//   },
-//   estado: {
-//     type: Number,
-//   },
-//   id_rol: { type: mongoose.Schema.Types.ObjectId, ref: 'Rol' },
-// });
-
-// module.exports = model('user', modelUser);
