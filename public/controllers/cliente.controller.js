@@ -8,6 +8,15 @@ const User = require('../models/users.model')
 const Rol = require('../models/rol.model')
 
 
+
+
+
+
+
+
+
+
+
 const getCliente = async (req, res) => {
 
     const clientes =  await Cliente.find()
@@ -33,9 +42,6 @@ const postCliente = async (req, res) => {
       direccion,
       estado,
     });
-
-    saveCliente.contrasena = bcrypt.hashSync(contrasena, 10);
-
 
     await saveCliente.save();
 
@@ -80,8 +86,7 @@ const postCliente = async (req, res) => {
       obras: rol.obras,
     });
 
-    saveUser.contrasena = bcrypt.hashSync(contrasena, 10);
-
+    
     await saveUser.save();
 
     res.json({
