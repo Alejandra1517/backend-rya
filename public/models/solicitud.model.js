@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-
 const { Schema, model } = require('mongoose');
 
 const SolicitudModel = new Schema({
@@ -7,6 +6,7 @@ const SolicitudModel = new Schema({
     {
       servicio: { type: mongoose.Schema.Types.ObjectId, ref: 'Servicio' }, // Referencia al servicio registrado
       personalizado: { type: Boolean, default: false }, // Indica si el servicio es personalizado
+      nombre_servicio: { type: String }, // Nombre del servicio en caso de ser personalizado
       cantidad: { type: Number },
       descripcion: { type: String },
     },
