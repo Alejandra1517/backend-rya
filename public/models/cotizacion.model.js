@@ -10,18 +10,16 @@ const CotizacionModel = new Schema({
         materialesSeleccionados: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Material' }],
     }],
 
-        subtotal: { type: Number },
+        fecha_inicio: { type: Date },
         fecha_vencimiento: { type: Date },
         mano_obra: { type: Number },
+        subtotal: { type: Number },
         total_servicio: { type: Number },
         estado_cotizacion: { type: Number },
         estado_solicitud: { type: Number }
 
     });
       
-
-    
-
 
 
 

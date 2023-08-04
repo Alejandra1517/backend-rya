@@ -23,7 +23,7 @@ const postServicio = async (req, res) => {
     
     const { descripcion, categoria, valor_unitario, estado, nombre_servicio } = req.body;
 
-    const imagen = req.file; // Obtener el archivo cargado desde req.file
+    const imagen = req.file.filename; // Obtener el nombre del archivo, que es un String
 
     const servicio = new Servicio({ descripcion, categoria, valor_unitario, estado, nombre_servicio, imagen });
 
@@ -36,18 +36,32 @@ const postServicio = async (req, res) => {
 }
 
 
-const putServicio = async (req, res) => {
+// const putServicio = async (req, res) => {
 
-    const paramts = req.params.id;
-    const { descripcion, categoria, valor_unitario, estado, nombre_servicio, imagen } = req.body;
+//     const paramts = req.params.id;
+//     const { descripcion, categoria, valor_unitario, estado, nombre_servicio, imagen } = req.body;
 
-    const servicioUpdate = await Servicio.findByIdAndUpdate(paramts, { descripcion, categoria, valor_unitario, estado, nombre_servicio, imagen });
+//     const servicioUpdate = await Servicio.findByIdAndUpdate(paramts, { descripcion, categoria, valor_unitario, estado, nombre_servicio, imagen });
    
-    res.send({
-        "ok" : 200,
-        "msg": "Servicio actualizado exitosamente" 
+//     res.send({
+//         "ok" : 200,
+//         "msg": "Servicio actualizado exitosamente" 
+//     }
+// )}
+
+
+const putServicio = async (req, res) => {
+    const { descripcion, categoria, valor_unitario, estado, nombre_servicio } = req.body;
+    const imagen = req.file.filename; // Obtener el nombre del archivo, que es un String
+
+    try {
+        const servicioUpdate = await Servicio.findByIdAndUpdate(req.params.id, { descripcion, categoria, valor_unitario, estado, nombre_servicio, imagen });
+        res.status(200).json({ ok: true, msg: 'Servicio actualizado exitosamente' });
+    } catch (error) {
+        res.status(500).json({ ok: false, error: 'Error al actualizar el Servicio' });
     }
-)}
+};
+
 
 const deleteServicio = async (req, res) => {
 

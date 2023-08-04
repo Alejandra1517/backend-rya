@@ -6,7 +6,20 @@ const { DBmongo } = require('../public/db/config')
 
 const multer = require('multer');
 
-const upload = multer({ dest: 'uploads/' });
+// const upload = multer({ dest: 'uploads/' });
+
+
+
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+      cb(null, 'uploads/'); // Directorio donde se almacenará el archivo
+    },
+    filename: function (req, file, cb) {
+      cb(null, Date.now() + '-' + file.originalname); // Nombre del archivo (puedes cambiarlo según tus necesidades)
+    }
+  });
+  
+  const upload = multer({ storage: storage });
 
 
 class Server {
@@ -44,6 +57,10 @@ class Server {
         
         
         this.app.use( express.static('public') )
+
+
+        this.app.use('/uploads', express.static('uploads'));
+
         
 
 

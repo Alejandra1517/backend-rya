@@ -25,12 +25,44 @@ const getMateriales = async (req, res) => {
 
 
 
+// const getCotizaciones = async (req, res) => {
+//   try {
+//     const Cotizaciones = await Cotizacion.find().populate('solicitud');
+
+//     res.json({
+//       Cotizaciones,
+//     });
+//   } catch (error) {
+//     console.error(error);
+//     return res.status(500).json({
+//       ok: 500,
+//       msg: "Ocurrió un error al obtener las cotizaciones",
+//     });
+//   }
+
+// };
+
+
+
 const getCotizaciones = async (req, res) => {
   try {
-    const Cotizaciones = await Cotizacion.find().populate('solicitud');
+    const Cotizaciones = await Cotizacion.find().populate({
+      path: 'solicitud',
+      populate: {
+        path: 'clienteId',
+        model: 'cliente', // Reemplaza 'Cliente' por el nombre correcto del modelo de cliente
+      },
+    });
+
+    const cotizacionesConNombres = Cotizaciones.map((cotizacion) => {
+      return {
+        ...cotizacion._doc,
+        nombre_cliente: cotizacion.solicitud?.clienteId?.nombre_cliente || 'Cliente desconocido',
+      };
+    });
 
     res.json({
-      Cotizaciones,
+      Cotizaciones: cotizacionesConNombres,
     });
   } catch (error) {
     console.error(error);
@@ -39,12 +71,12 @@ const getCotizaciones = async (req, res) => {
       msg: "Ocurrió un error al obtener las cotizaciones",
     });
   }
-
 };
 
 
+
 const postCotizacion = async (req, res) => {
-  const { solicitud, servicios, subtotal, fecha_vencimiento, mano_obra, total_servicio, estado_cotizacion, estado_solicitud } = req.body;
+  const { solicitud, servicios, fecha_inicio, fecha_vencimiento, mano_obra, subtotal,  total_servicio, estado_cotizacion, estado_solicitud } = req.body;
 
   try {
     // Busca la solicitud por su ID
@@ -57,9 +89,10 @@ const postCotizacion = async (req, res) => {
     const saveCotizacion = new Cotizacion({
       solicitud,
       servicios,
-      subtotal,
+      fecha_inicio,
       fecha_vencimiento,
       mano_obra,
+      subtotal,
       total_servicio,
       estado_cotizacion,
       estado_solicitud,
