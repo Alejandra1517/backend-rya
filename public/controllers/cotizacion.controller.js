@@ -1,55 +1,137 @@
 const Cotizacion = require('../models/cotizacion.model')
 
+const Solicitud = require('../models/solicitud.model')
+
+const Servicio = require('../models/servicio.model')
+
+
+const Material = require('../models/material.model')
+
+
+const getMateriales = async (req, res) => {
+  try {
+    const materiales = await Material.find();
+    res.json({
+      materiales,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      ok: 500,
+      msg: "Ocurrió un error al obtener los materiales",
+    });
+  }
+};
+
+
 
 const getCotizaciones = async (req, res) => {
-
-    const Cotizaciones =  await Cotizacion.find()
+  try {
+    const Cotizaciones = await Cotizacion.find().populate('solicitud');
 
     res.json({
+      Cotizaciones,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      ok: 500,
+      msg: "Ocurrió un error al obtener las cotizaciones",
+    });
+  }
 
-        Cotizaciones
-})
-}
-
+};
 
 
 const postCotizacion = async (req, res) => {
+  const { solicitud, servicios, subtotal, fecha_vencimiento, mano_obra, total_servicio, estado_cotizacion, estado_solicitud } = req.body;
 
-    const { solicitud, materiales, servicios, servicio, cantidad, descripción, subtotal, fecha_vencimiento, mano_obra, total_servicio, estado_cotizacion_cliente, estado_cotizacion, estado_solicitud } =  req.body
+  try {
+    // Busca la solicitud por su ID
+    const solicitudExistente = await Solicitud.findById(solicitud);
 
-    const saveCotizacion = new Cotizacion( { solicitud, materiales, servicios, servicio, cantidad, descripción, subtotal, fecha_vencimiento, mano_obra, total_servicio, estado_cotizacion_cliente, estado_cotizacion, estado_solicitud } )
+    if (!solicitudExistente) {
+      return res.status(404).json({ error: 'La solicitud no existe.' });
+    }
 
+    const saveCotizacion = new Cotizacion({
+      solicitud,
+      servicios,
+      subtotal,
+      fecha_vencimiento,
+      mano_obra,
+      total_servicio,
+      estado_cotizacion,
+      estado_solicitud,
+    });
 
-    await saveCotizacion.save()
+    // Asocia los materiales seleccionados a cada servicio de la solicitud
+    for (const servicio of servicios) {
+      // Busca el servicio por su ID
+      const servicioExistente = await Servicio.findById(servicio.servicio);
+
+      if (!servicioExistente) {
+        return res.status(404).json({ error: `El servicio con ID ${servicio.servicio} no está registrado.` });
+      }
+
+      // Crea un array para almacenar los IDs de los materiales seleccionados
+      const materialesSeleccionados = [];
+
+      // Itera sobre los materiales seleccionados y agrega los IDs al array
+      for (const materialSeleccionado of servicio.materialesSeleccionados) {
+        const materialExistente = await Material.findById(materialSeleccionado);
+
+        if (!materialExistente) {
+          return res.status(404).json({ error: `El material con ID ${materialSeleccionado} no está registrado.` });
+        }
+
+        materialesSeleccionados.push(materialSeleccionado);
+      }
+
+      // Agrega los materiales seleccionados al servicio de la solicitud
+      servicioExistente.materialesSeleccionados = materialesSeleccionados;
+      // Agrega el servicio con los materiales seleccionados a la solicitud
+      solicitudExistente.servicios.push(servicioExistente);
+    }
+
+    await saveCotizacion.save();
 
     res.json({
+      ok: 200,
+      msg: "Cotizacion guardado correctamente",
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error interno del servidor.' });
+  }
+};
 
-        ok: 200,
-        msg: "Cotizacion guardado correctamente"
-
-    })
-
-}
 
 
 const putCotizacion = async (req, res) => {
+  try {
+    const id = req.params.id;
+    const { servicios, fecha_vencimiento, mano_obra, total_servicio, estado_cotizacion, estado_solicitud } = req.body;
 
-    const id = req.params.id
-
-    const { servicio, cantidad, descripción, subtotal, fecha_vencimiento, mano_obra, total_servicio, estado_cotizacion_cliente, estado_cotizacion, estado_solicitud } =  req.body
-
-    const editCotizacion = await Cotizacion.findByIdAndUpdate(id, { servicio, cantidad, descripción, subtotal, fecha_vencimiento, mano_obra, total_servicio, estado_cotizacion_cliente, estado_cotizacion, estado_solicitud })
-
-
+    const editCotizacion = await Cotizacion.findByIdAndUpdate(id, {
+      servicios,
+      fecha_vencimiento,
+      mano_obra,
+      total_servicio,
+      estado_cotizacion,
+      estado_solicitud,
+    });
 
     res.json({
+      ok: 200,
+      msg: "Cotizacion editada correctamente",
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error interno del servidor.' });
+  }
+};
 
-        ok: 200,
-        msg: "Cotizacion editado correctamente"
-
-    })
-
-}
 
 
 const deleteCotizacion = async (req, res) => {
@@ -87,7 +169,8 @@ const deleteAllCotizaciones = async (req, res) => {
 
 
 module.exports = {
-
+    
+    getMateriales,
     getCotizaciones,
     postCotizacion,
     putCotizacion,

@@ -1,10 +1,12 @@
 const { Router } = require('express')
 
-const { getCotizaciones, postCotizacion, putCotizacion, deleteCotizacion, deleteAllCotizaciones } = require('../controllers/cotizacion.controller')
+const { getMateriales, getCotizaciones, postCotizacion, putCotizacion, deleteCotizacion, deleteAllCotizaciones } = require('../controllers/cotizacion.controller')
 
 
 const route = Router()
 
+
+route.get('/materiales', getMateriales)
 
 route.get('/getCotizaciones', getCotizaciones)
 

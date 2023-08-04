@@ -21,8 +21,8 @@ const getMaterialById = async (req, res) => {
 
 const postMaterial = async (req, res) => {
     
-    const { nombre_material, proveedor, estado, fecha } = req.body;
-    const material = new Material({ nombre_material, proveedor, estado, fecha });
+    const { nombre_material, proveedor, valor_unitario, estado, fecha } = req.body;
+    const material = new Material({ nombre_material, proveedor, valor_unitario, estado, fecha });
 
     await material.save();
 
@@ -35,9 +35,9 @@ const postMaterial = async (req, res) => {
 const putMaterial = async (req, res) => {
 
     const paramts = req.params.id;
-    const { nombre_material, proveedor, estado } = req.body;
+    const { nombre_material, proveedor, valor_unitario, estado } = req.body;
 
-    const materialUpdate = await Material.findByIdAndUpdate(paramts, { nombre_material, proveedor, estado });
+    const materialUpdate = await Material.findByIdAndUpdate(paramts, { nombre_material, proveedor, valor_unitario, estado });
    
     res.send({
         "ok" : 200,

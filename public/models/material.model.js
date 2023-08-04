@@ -10,6 +10,10 @@ const MaterialModel = new Schema({
         type:String,
         required:["El proveedor es obligatorio!"]
     },
+
+    valor_unitario:{
+      type:Number,
+    },
     
     estado:{
         type:Number
