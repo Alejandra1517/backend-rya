@@ -4,7 +4,6 @@ const Solicitud = require('../models/solicitud.model')
 
 const Servicio = require('../models/servicio.model')
 
-
 const Material = require('../models/material.model')
 
 
@@ -24,26 +23,6 @@ const getMateriales = async (req, res) => {
 };
 
 
-
-// const getCotizaciones = async (req, res) => {
-//   try {
-//     const Cotizaciones = await Cotizacion.find().populate('solicitud');
-
-//     res.json({
-//       Cotizaciones,
-//     });
-//   } catch (error) {
-//     console.error(error);
-//     return res.status(500).json({
-//       ok: 500,
-//       msg: "Ocurrió un error al obtener las cotizaciones",
-//     });
-//   }
-
-// };
-
-
-
 const getCotizaciones = async (req, res) => {
   try {
     const Cotizaciones = await Cotizacion.find().populate({
@@ -55,12 +34,25 @@ const getCotizaciones = async (req, res) => {
     });
 
     const cotizacionesConNombres = Cotizaciones.map((cotizacion) => {
+      // Procesar los datos para devolver el resultado en el formato deseado
+      const serviciosFormateados = cotizacion.servicios.map((servicio) => ({
+        cantidad: servicio.cantidad,
+        descripcion: servicio.descripcion,
+        materialesSeleccionados: servicio.materialesSeleccionados,
+        servicio: servicio.servicio, // Reemplaza si es necesario por el campo adecuado que contiene el ID del servicio
+      }));
+      
       return {
         ...cotizacion._doc,
         nombre_cliente: cotizacion.solicitud?.clienteId?.nombre_cliente || 'Cliente desconocido',
+        descripcion_solicitud: cotizacion.solicitud?.descripcion || '',
+        cantidad_solicitud: cotizacion.solicitud?.cantidad || 0,
+        servicios: serviciosFormateados,
       };
-    });
-
+      
+    
+    }
+    );
     res.json({
       Cotizaciones: cotizacionesConNombres,
     });
@@ -74,68 +66,63 @@ const getCotizaciones = async (req, res) => {
 };
 
 
-
-const postCotizacion = async (req, res) => {
-  const { solicitud, servicios, fecha_inicio, fecha_vencimiento, mano_obra, subtotal,  total_servicio, estado_cotizacion, estado_solicitud } = req.body;
+const getCotizacionById = async (req, res) => {
+  const cotizacionId = req.params.id;
 
   try {
-    // Busca la solicitud por su ID
-    const solicitudExistente = await Solicitud.findById(solicitud);
-
-    if (!solicitudExistente) {
-      return res.status(404).json({ error: 'La solicitud no existe.' });
-    }
-
-    const saveCotizacion = new Cotizacion({
-      solicitud,
-      servicios,
-      fecha_inicio,
-      fecha_vencimiento,
-      mano_obra,
-      subtotal,
-      total_servicio,
-      estado_cotizacion,
-      estado_solicitud,
+    const cotizacion = await Cotizacion.findById(cotizacionId).populate({
+      path: 'solicitud',
+      populate: {
+        path: 'clienteId',
+        model: 'cliente', // Reemplaza 'Cliente' por el nombre correcto del modelo de cliente
+      },
     });
 
-    // Asocia los materiales seleccionados a cada servicio de la solicitud
-    for (const servicio of servicios) {
-      // Busca el servicio por su ID
-      const servicioExistente = await Servicio.findById(servicio.servicio);
+    if (!cotizacion) {
+      return res.status(404).json({ error: 'La cotización no existe.' });
+    }
 
-      if (!servicioExistente) {
-        return res.status(404).json({ error: `El servicio con ID ${servicio.servicio} no está registrado.` });
-      }
+    // Obtener los nombres de los servicios en la cotización
+    const serviciosFormateados = await Promise.all(
+      cotizacion.servicios.map(async (servicio) => {
+        const servicioEncontrado = await Servicio.findById(servicio.servicio);
 
-      // Crea un array para almacenar los IDs de los materiales seleccionados
-      const materialesSeleccionados = [];
-
-      // Itera sobre los materiales seleccionados y agrega los IDs al array
-      for (const materialSeleccionado of servicio.materialesSeleccionados) {
-        const materialExistente = await Material.findById(materialSeleccionado);
-
-        if (!materialExistente) {
-          return res.status(404).json({ error: `El material con ID ${materialSeleccionado} no está registrado.` });
+        if (servicioEncontrado) {
+          return {
+            servicio: servicio.servicio,
+            nombre_servicio: servicioEncontrado.nombre_servicio,
+            cantidad: servicio.cantidad,
+            descripcion: servicio.descripcion,
+            materialesSeleccionados: servicio.materialesSeleccionados,
+          };
+        } else {
+          return {
+            cantidad: servicio.cantidad,
+            descripcion: servicio.descripcion,
+            materialesSeleccionados: servicio.materialesSeleccionados,
+            nombre_servicio: servicio.nombre_servicio
+          };
         }
+      })
+    );
 
-        materialesSeleccionados.push(materialSeleccionado);
-      }
+      console.log("c", cotizacionId.correo_cliente)
 
-      // Agrega los materiales seleccionados al servicio de la solicitud
-      servicioExistente.materialesSeleccionados = materialesSeleccionados;
-      // Agrega el servicio con los materiales seleccionados a la solicitud
-      solicitudExistente.servicios.push(servicioExistente);
-    }
+    const cotizacionConNombre = {
+      ...cotizacion._doc,
+      correo_cliente: cotizacion.solicitud?.clienteId?.correo || cotizacionId.correo_cliente,
+      descripcion_solicitud: cotizacion.solicitud?.descripcion || '',
+      cantidad_solicitud: cotizacion.solicitud?.cantidad || 0,
+      servicios: serviciosFormateados,
+    };
 
-    await saveCotizacion.save();
-
-    res.json({
-      ok: 200,
-      msg: "Cotizacion guardado correctamente",
-    });
+    res.json({ cotizacion: cotizacionConNombre });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: 'Error interno del servidor.' });
+    return res.status(500).json({
+      ok: 500,
+      msg: 'Ocurrió un error al obtener la cotización.',
+    });
   }
 };
 
@@ -146,8 +133,29 @@ const putCotizacion = async (req, res) => {
     const id = req.params.id;
     const { servicios, fecha_vencimiento, mano_obra, total_servicio, estado_cotizacion, estado_solicitud } = req.body;
 
-    const editCotizacion = await Cotizacion.findByIdAndUpdate(id, {
-      servicios,
+    // Crea un array para almacenar los servicios de la cotización
+    const serviciosCotizacion = [];
+
+    // Itera sobre los servicios recibidos en el cuerpo de la solicitud
+    for (const servicio of servicios) {
+
+      const servicioCotizacion = {
+        servicio: servicio.servicio,
+        nombre_servicio: servicio.nombre_servicio,
+        cantidad: servicio.cantidad,
+        descripcion: servicio.descripcion,
+        materialesSeleccionados: servicio.materialesSeleccionados,
+      };
+      
+      
+      serviciosCotizacion.push(servicioCotizacion);
+    
+    }
+    
+    
+    // Actualiza la cotización con los servicios correspondientes y otros campos
+    await Cotizacion.findByIdAndUpdate(id, {
+      servicios: serviciosCotizacion,
       fecha_vencimiento,
       mano_obra,
       total_servicio,
@@ -166,6 +174,114 @@ const putCotizacion = async (req, res) => {
 };
 
 
+//Para la vista de cliente  (cosiderar si es necesaria la implementacion de esta peticion)
+const getCotizacionesPorClienteId = async (req, res) => {
+  const clienteId = req.params.clienteId;
+
+  try {
+    // Obtener las cotizaciones asociadas al ID del cliente y poblar los datos del cliente en ellas
+    const cotizaciones = await Cotizacion.find({
+      'solicitud.clienteId': clienteId,
+    }).populate({
+      path: 'solicitud.clienteId',
+      model: 'Cliente', // Reemplaza 'Cliente' por el nombre correcto del modelo de cliente
+      select: 'nombre_cliente', // Selecciona solo el campo 'nombre_cliente' del cliente
+    });
+
+    // Extraer solo el nombre del cliente de las cotizaciones
+    const nombresClientes = cotizaciones.map((cotizacion) => cotizacion.solicitud.clienteId.nombre_cliente);
+
+    res.json({
+      nombresClientes,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      ok: 500,
+      msg: 'Ocurrió un error al obtener los nombres de los clientes asociados a las cotizaciones',
+    });
+  }
+};
+
+
+const postCotizacion = async (req, res) => {
+  const { solicitud, servicios, correo_cliente, fecha_inicio, fecha_vencimiento, mano_obra, subtotal, total_servicio, estado_cotizacion, estado_solicitud } = req.body;
+
+  try {
+    // Si existe la solicitud, se asume que la cotización se crea a partir de ella
+    let solicitudExistente;
+    if (solicitud) {
+      solicitudExistente = await Solicitud.findById(solicitud);
+      if (!solicitudExistente) {
+        return res.status(404).json({ error: 'La solicitud no existe.' });
+      }
+    }
+
+    // Crea un array para almacenar los servicios de la cotización
+    const serviciosCotizacion = [];
+
+    // Itera sobre los servicios recibidos en el cuerpo de la solicitud
+    for (const servicio of servicios) {
+      // Verifica si el servicio tiene una solicitud asociada
+
+      if (servicio.tipo === 'solicitud') {
+        if (!solicitudExistente) {
+          return res.status(400).json({ error: 'No se puede asociar un servicio de solicitud sin proporcionar una solicitud válida.' });
+        }
+        // Si el servicio proviene de una solicitud, busca el servicio en la solicitud por su ID
+        const servicioSolicitud = solicitudExistente.servicios.find((serv) => serv.servicio.toString() === servicio.servicio);
+        if (!servicioSolicitud) {
+          return res.status(404).json({ error: `El servicio con ID ${servicio.servicio} no está registrado en la solicitud.` });
+        }
+        // Crea una copia del servicio de la solicitud y agrega la cantidad y descripción de la cotización
+        const servicioCotizacion = {
+          tipo: servicio.tipo, // Establecer el tipo para los servicios de solicitud
+          servicio: servicio.servicio,
+          nombre_servicio: servicio.nombre_servicio,
+          cantidad: servicio.cantidad,
+          descripcion: servicio.descripcion,
+          materialesSeleccionados: servicio.materialesSeleccionados, // Asocia los materiales seleccionados al servicio de la cotización
+        };
+
+
+        serviciosCotizacion.push(servicioCotizacion);
+      } else if (servicio.tipo === 'cotizacion') {
+
+        // Si el servicio no tiene una solicitud asociada, lo agrega tal cual a la cotización
+        serviciosCotizacion.push(servicio);
+      } else {
+        return res.status(400).json({ error: `El campo 'tipo' del servicio con ID ${servicio.servicio} es inválido.` });
+      }
+    }
+
+
+
+    // Crea la cotización con los servicios correspondientes
+    const saveCotizacion = new Cotizacion({
+      solicitud,
+      servicios: serviciosCotizacion,
+      correo_cliente, 
+      fecha_inicio,
+      fecha_vencimiento,
+      mano_obra,
+      subtotal,
+      total_servicio,
+      estado_cotizacion,
+      estado_solicitud,
+    });
+
+    // Guarda la cotización en la base de datos
+    await saveCotizacion.save();
+
+    res.json({
+      ok: 200,
+      msg: 'Cotizacion guardada correctamente',
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error interno del servidor.' });
+  }
+};
 
 const deleteCotizacion = async (req, res) => {
 
@@ -205,6 +321,8 @@ module.exports = {
     
     getMateriales,
     getCotizaciones,
+    getCotizacionById,
+    getCotizacionesPorClienteId,
     postCotizacion,
     putCotizacion,
     deleteCotizacion,

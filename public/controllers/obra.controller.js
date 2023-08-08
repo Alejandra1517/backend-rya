@@ -1,36 +1,143 @@
 
 const Obra = require('../models/obra.model')
 
+const Cotizacion = require('../models/cotizacion.model')
+
+const Solicitud = require('../models/solicitud.model')
+
+
+const Material = require('../models/material.model')
+
+const Empleado = require('../models/empleado.model')
+
+
+// const getObras = async (req, res) => {
+//   try {
+//     const obras = await Obra.find();
+
+//     const obrasConDatos = await Promise.all(
+//       obras.map(async (obra) => {
+//         const empleadoEncargado = await Empleado.findById(obra.empleado_encargado);
+
+//         return {
+//           _id: obra._id,
+//           cotizacion: obra.cotizacion,
+//           servicios: obra.servicios,
+//           correo_cliente: obra.correo_cliente,
+//           empleado_encargado: empleadoEncargado,
+//           fecha_inicio: new Date(),
+//           estado_servicio: obra.estado_servicio,
+//           // cliente: cliente,
+//         };
+//       })
+//     );
+
+//     res.json({
+//       obras: obrasConDatos,
+//     });
+//   } catch (error) {
+//     console.error('Error al obtener las obras', error);
+//     res.status(500).json({ error: 'Error al obtener las obras' });
+//   }
+// };
+
+
 
 const getObras = async (req, res) => {
+  try {
+    const obras = await Obra.find();
 
-    const Obraes =  await Obra.find()
+    const obrasConDatos = await Promise.all(
+      obras.map(async (obra) => {
+        const empleadoEncargado = await Empleado.findById(obra.empleado_encargado);
+
+        const serviciosConDetalles = await Promise.all(
+          obra.servicios.map(async (servicio) => {
+            const materialIds = servicio.materialesSeleccionados;
+            const materiales = await Promise.all(
+              materialIds.map(async (materialId) => {
+                const material = await Material.findById(materialId);
+                return {
+                  nombre_material: material.nombre_material,
+                  cantidad: servicio.cantidad,
+                  valor_unitario: material.valor_unitario,
+                };
+              })
+            );
+            return {
+              servicio: servicio.servicio,
+              cantidad: servicio.cantidad,
+              descripcion: servicio.descripcion,
+              materiales: materiales,
+              _id: servicio._id,
+            };
+          })
+        );
+
+        return {
+          _id: obra._id,
+          cotizacion: obra.cotizacion,
+          servicios: serviciosConDetalles,
+          correo_cliente: obra.correo_cliente,
+          empleado_encargado: empleadoEncargado,
+          fecha_inicio: new Date(),
+          estado_servicio: obra.estado_servicio,
+        };
+      })
+    );
 
     res.json({
+      obras: obrasConDatos,
+    });
+  } catch (error) {
+    console.error('Error al obtener las obras', error);
+    res.status(500).json({ error: 'Error al obtener las obras' });
+  }
+};
 
-        Obraes
-})
-}
 
 
 
 const postObra = async (req, res) => {
+  const { cotizacionId, correo_cliente, empleado_encargado, fecha_inicio, estado_servicio } = req.body;
 
-    const { solicitud, materiales, fecha_inicio, estado_servicio } =  req.body
+  try {
+    const cotizacion = await Cotizacion.findById(cotizacionId).populate('servicios.servicio');
 
-    const saveObra = new Obra( { solicitud, materiales, fecha_inicio, estado_servicio } )
+    if (!cotizacion) {
+      return res.status(404).json({ error: 'La cotización no existe.' });
+    }
 
+    const serviciosCotizacion = cotizacion.servicios.map((servicioCotizado) => ({
+      servicio: servicioCotizado.servicio,
+      nombre_servicio: servicioCotizado.nombre_servicio,
+      cantidad: servicioCotizado.cantidad,
+      descripcion: servicioCotizado.descripcion,
+      materialesSeleccionados: servicioCotizado.materialesSeleccionados,
+    }));
 
-    await saveObra.save()
+    console.log(serviciosCotizacion)
+
+    const obra = new Obra({
+      cotizacion: cotizacionId,
+      servicios: serviciosCotizacion,
+      correo_cliente,
+      empleado_encargado,
+      fecha_inicio,
+      estado_servicio,
+    });
+
+    await obra.save();
 
     res.json({
-
-        ok: 200,
-        msg: "Obra guardada correctamente"
-
-    })
-
-}
+      ok: 200,
+      msg: 'Obra creada correctamente',
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error interno del servidor.' });
+  }
+};
 
 
 const putObra = async (req, res) => {
