@@ -9,14 +9,6 @@ const Rol = require('../models/rol.model')
 
 
 
-
-
-
-
-
-
-
-
 const getCliente = async (req, res) => {
 
     const clientes =  await Cliente.find()
@@ -29,7 +21,7 @@ const getCliente = async (req, res) => {
 
 
 const postCliente = async (req, res) => {
-  try {
+   try {
     const { nombre_cliente, correo, contrasena, documento, telefono, direccion, estado } = req.body;
 
     // Crear el cliente con los datos recibidos en la solicitud

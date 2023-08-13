@@ -20,20 +20,29 @@ const getServicioById = async (req, res) => {
 }
 
 const postServicio = async (req, res) => {
-    
     const { descripcion, categoria, valor_unitario, estado, nombre_servicio } = req.body;
-
-    const imagen = req.file.filename; // Obtener el nombre del archivo, que es un String
-
+  
+    let imagen = null; // Inicializa imagen como null por defecto
+  
+    if (req.file) {
+      // Si req.file está definido, obtén el nombre del archivo
+      imagen = req.file.filename;
+    }
+  
     const servicio = new Servicio({ descripcion, categoria, valor_unitario, estado, nombre_servicio, imagen });
-
-    await servicio.save();
-
-    res.send({
+  
+    try {
+      await servicio.save();
+      res.send({
         "ok" : 200,
         servicio
-    })
-}
+      });
+    } catch (error) {
+      console.error('Error al guardar el servicio', error);
+      res.status(500).json({ error: 'Error al guardar el servicio' });
+    }
+  };
+  
 
 
 // const putServicio = async (req, res) => {
@@ -49,19 +58,37 @@ const postServicio = async (req, res) => {
 //     }
 // )}
 
-
 const putServicio = async (req, res) => {
     const { descripcion, categoria, valor_unitario, estado, nombre_servicio } = req.body;
-    const imagen = req.file.filename; // Obtener el nombre del archivo, que es un String
-
-    try {
-        const servicioUpdate = await Servicio.findByIdAndUpdate(req.params.id, { descripcion, categoria, valor_unitario, estado, nombre_servicio, imagen });
-        res.status(200).json({ ok: true, msg: 'Servicio actualizado exitosamente' });
-    } catch (error) {
-        res.status(500).json({ ok: false, error: 'Error al actualizar el Servicio' });
+  
+    let imagen = null; // Inicializa imagen como null por defecto
+  
+    if (req.file) {
+      // Si req.file está definido, obtén el nombre del archivo
+      imagen = req.file.filename;
     }
-};
-
+  
+    try {
+      const servicioUpdateData = {
+        descripcion,
+        categoria,
+        valor_unitario,
+        estado,
+        nombre_servicio
+      };
+  
+      if (imagen) {
+        // Si imagen no es null, agrega imagen al objeto de actualización
+        servicioUpdateData.imagen = imagen;
+      }
+  
+      const servicioUpdate = await Servicio.findByIdAndUpdate(req.params.id, servicioUpdateData);
+      res.status(200).json({ ok: true, msg: 'Servicio actualizado exitosamente' });
+    } catch (error) {
+      res.status(500).json({ ok: false, error: 'Error al actualizar el Servicio' });
+    }
+  };
+  
 
 const deleteServicio = async (req, res) => {
 

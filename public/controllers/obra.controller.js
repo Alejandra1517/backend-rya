@@ -54,16 +54,27 @@ const getObras = async (req, res) => {
         const serviciosConDetalles = await Promise.all(
           obra.servicios.map(async (servicio) => {
             const materialIds = servicio.materialesSeleccionados;
+
+            // console.log("Materiales seleccionados: ", materialIds)
+
             const materiales = await Promise.all(
               materialIds.map(async (materialId) => {
                 const material = await Material.findById(materialId);
-                return {
-                  nombre_material: material.nombre_material,
-                  cantidad: servicio.cantidad,
-                  valor_unitario: material.valor_unitario,
-                };
+            
+                if (material) {
+            
+                  return {
+                    nombre_material: material.nombre_material,
+                    // cantidad: material.cantidad,
+                    valor_unitario: material.valor_unitario,
+                  };
+                } else {
+                  console.log("Material no encontrado para ID:", materialId);
+                  return null;
+                }
               })
             );
+            
             return {
               servicio: servicio.servicio,
               cantidad: servicio.cantidad,
@@ -99,7 +110,7 @@ const getObras = async (req, res) => {
 
 
 const postObra = async (req, res) => {
-  const { cotizacionId, correo_cliente, empleado_encargado, fecha_inicio, estado_servicio } = req.body;
+  const { cotizacionId, nombre_servicio, correo_cliente, empleado_encargado, fecha_inicio, estado_servicio } = req.body;
 
   try {
     const cotizacion = await Cotizacion.findById(cotizacionId).populate('servicios.servicio');
