@@ -1,13 +1,80 @@
 const { request, response } = require('express')
 
+const nodemailer = require('nodemailer');
+
 const bycrypt = require('bcrypt')
 
 const User = require('../models/users.model')
 
 const Rol = require('../models/rol.model')
 
+const jwt = require('jsonwebtoken');
 
-const { generarJwt } = require('../helpers/jwt')
+const { generarJwt } = require('../helpers/jwt');
+
+
+
+const forgotPassword = async (req = request, res = response) => {
+  const { correo } = req.body;
+
+  try {
+    const usuario = await User.findOne({ correo });
+
+    if (!usuario) {
+      return res.status(400).json({
+        msg: "El correo electrónico no está registrado.",
+      });
+    }
+
+    const resetToken = jwt.sign({ correo }, process.env.SECRETKEY, {
+      expiresIn: '1h', // Token expira en 1 hora
+    });
+
+    // Construir el enlace para restablecer la contraseña
+    const resetLink = `http://localhost:4200/auth/restablecer-contrasena/${resetToken}`;
+    
+    // const resetLink = `http://localhost:8081/api/restablecer-contrasena/${resetToken}`;
+
+
+
+    // Cuerpo del correo electrónico
+    const mailOptions = {
+      from: 'mabuitrago00@misena.edu.co',
+      to: usuario.correo,
+      subject: 'Recuperación de contraseña',
+      html: `<p>Haga clic en el siguiente enlace para restablecer su contraseña:</p><a href="${resetLink}">${resetLink}</a>`,
+    };
+
+    // Configurar nodemailer con tus credenciales
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: 'mabuitrago00@misena.edu.co',
+        pass: '1026130800',
+      },
+    });
+
+    // Envía el correo electrónico
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.log(error);
+        return res.status(500).json({
+          msg: "Error al enviar el correo de recuperación de contraseña.",
+        });
+      }
+      
+      console.log('Correo de recuperación enviado:', info.response);
+      res.json({
+        msg: "Se ha enviado un correo de recuperación de contraseña.",
+      });
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      msg: "Error al procesar la solicitud de recuperación de contraseña.",
+    });
+  }
+};
 
 
 
@@ -89,9 +156,31 @@ const postAuth = async (req = request, res = response ) => {
     }  
 }
 
+const resetPassword = async (req = request, res = response) => {
+  const { token } = req.params;
+  const { newPassword } = req.body;
+
+  try {
+    const decodedToken = jwt.verify(token, process.env.SECRETKEY);
+
+    const correo = decodedToken.correo;
+
+    const hashedPassword = await bycrypt.hash(newPassword, 10);
+    await User.updateOne({ correo }, { contrasena: hashedPassword });
+
+    res.json({
+      msg: "Contraseña restablecida exitosamente.",
+    });
+  } catch (error) {
+    console.log("Error al restablecer la contraseña:", error);
+    res.status(400).json({
+      msg: "El token es inválido o ha expirado.",
+    });
+  }
+};
 
 
-const jwt = require('jsonwebtoken');
+// const jwt = require('jsonwebtoken');
 
 
 const getActualUser = async (req, res) => {
@@ -145,7 +234,9 @@ const getActualUser = async (req, res) => {
 module.exports = {
 
     postAuth,
-    getActualUser
+    getActualUser,
+    forgotPassword,
+    resetPassword
 
 
 }
