@@ -78,8 +78,6 @@ const postUser = async (req, res) => {
       saveCliente.contrasena = bcrypt.hashSync(contrasena, 10);
 
       await saveCliente.save();
-
-
     }
 
     await saveUser.save();
@@ -92,7 +90,7 @@ const postUser = async (req, res) => {
     console.log('Error al guardar el usuario:', error);
     res.status(500).json({
       ok: false,
-      error: 'Error al guardar el usuario',
+      msg: 'El usuario ya se encuentra registrado en la base de datos.',
     });
   }
 };

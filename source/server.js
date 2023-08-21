@@ -1,12 +1,16 @@
-const express = require('express')
+const express = require('express');
 
 const cors = require('cors')
+
+
+const http = require('http'); // Importa el módulo http
+const socketIo = require('socket.io'); // Importa Socket.io
 
 const { DBmongo } = require('../public/db/config')
 
 const multer = require('multer');
 
-// const upload = multer({ dest: 'uploads/' });
+
 
 
 
@@ -22,25 +26,49 @@ const storage = multer.diskStorage({
   const upload = multer({ storage: storage });
 
 
+  const io = socketIo(http.createServer(), {
+    cors: {
+        origin: 'http://localhost:4200',  
+        methods: ['GET', 'POST'],
+        credentials: true
+    }
+});
+
+ 
+
+
 class Server {
 
 
     constructor(){
-        
-        this.app = express()
-        this.port = process.env.port
-        
-        
-        this.DBconnection()
-        
-        this.middlewares()
 
-        this.routes()
+      this.app = express()
+      this.port = process.env.PORT || 8081
+   
+      this.DBconnection()
         
-        
+      this.middlewares()
+
+      this.routes()
+
+      this.setupSocketIo();
     }
-    
-    
+
+
+
+    setupSocketIo() {
+      io.on('connection', (socket) => {
+          console.log('Cliente conectado');
+          socket.on('disconnect', () => {
+              console.log('Cliente desconectado');
+          });
+          socket.on('notificacionCambioEstado', (notificationData) => {
+              io.emit('notificacionCambioEstado', notificationData);
+          });
+      });
+  }
+  
+
     DBconnection(){
 
         DBmongo()
@@ -61,14 +89,17 @@ class Server {
 
         this.app.use('/uploads', express.static('uploads'));
 
-        
-
-
-        // this.upload = multer({ dest: 'uploads/' }); // d irectorio de almacenamiento de archivos
     }
 
     
+
+    
     routes(){
+
+      this.app.get('/', (req, res) => {
+        res.send('¡Bienvenido a mi servidor!');
+    });
+    
 
         this.app.use('/api',  require('../public/routes/auth.routes'))
         
@@ -92,6 +123,8 @@ class Server {
 
     }
 
+    
+
 
     listen(){
 
@@ -101,10 +134,19 @@ class Server {
 
         })
 
+
+        io.httpServer.listen(3000, () => {
+          console.log(`Servidor Socket.io corriendo en el puerto ${io.httpServer.address().port}`);
+      });
+      
+
     }
+
+    
 
 
 }
 
 
-module.exports = { Server, upload };
+
+module.exports = { Server, upload, io };

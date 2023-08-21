@@ -5,6 +5,9 @@ const Cliente = require('../models/cliente.model')
 
 const Servicio = require('../models/servicio.model')
 
+const { io } = require('../../source/server');
+
+
 
 const getSolicitudes = async (req, res) => {
 
@@ -17,10 +20,10 @@ const getSolicitudes = async (req, res) => {
 }
 
 
-const putServicioSolicitud = async (req, res) => {
+const putServicioSolicitud = async (req, res ) => {
   try {
     const id = req.params.id;
-    const { servicios } = req.body;
+    const { servicios, estado_solicitud } = req.body;
 
     const editSolicitud = await Solicitud.findById(id);
 
@@ -28,12 +31,32 @@ const putServicioSolicitud = async (req, res) => {
       return res.status(404).json({ error: 'La solicitud no existe.' });
     }
 
+    const antiguoEstado = editSolicitud.estado_solicitud; // Almacena el estado anterior para la notificación
+
+
     // Actualiza el campo 'servicios' solo si hay servicios enviados en la solicitud
     if (servicios && servicios.length > 0) {
       editSolicitud.servicios = servicios;
     }
 
+    // Actualiza el estado de la solicitud
+    editSolicitud.estado_solicitud = estado_solicitud;
     await editSolicitud.save();
+  
+
+    // Emitir notificación solo si el estado de la solicitud cambia
+    if (editSolicitud.estado_solicitud !== antiguoEstado) {
+      const notificationData = {
+        asunto: editSolicitud.asunto,
+        nuevoEstado: estado_solicitud,
+        correoCliente: editSolicitud.correo,
+      };
+
+      // Emitir la notificación a través de Socket.io
+      io.emit('notificacionCambioEstado', notificationData);
+    
+    }
+
 
     res.json({
       ok: 200,
@@ -106,6 +129,9 @@ const postSolicitud = async (req, res) => {
     }
 
     await saveSolicitud.save();
+
+      // Emitir notificación a través de Socket.io
+      // io.emit('nuevaSolicitud', saveSolicitud);
 
     res.json({
       ok: true,

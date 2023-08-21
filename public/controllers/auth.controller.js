@@ -36,7 +36,6 @@ const forgotPassword = async (req = request, res = response) => {
     // const resetLink = `http://localhost:8081/api/restablecer-contrasena/${resetToken}`;
 
 
-
     // Cuerpo del correo electrónico
     const mailOptions = {
       from: 'mabuitrago00@misena.edu.co',
