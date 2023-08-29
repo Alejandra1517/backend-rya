@@ -71,7 +71,7 @@ const putServicioSolicitud = async (req, res ) => {
 
 const postSolicitud = async (req, res) => {
   try {
-    const {
+    const { 
       nombre_cliente,
       asunto,
       direccion,

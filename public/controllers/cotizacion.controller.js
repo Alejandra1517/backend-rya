@@ -204,7 +204,7 @@ const getCotizacionesPorClienteId = async (req, res) => {
 
 
 const postCotizacion = async (req, res) => {
-  const { solicitud, servicios, fecha_inicio, fecha_vencimiento, subtotal, total_servicios, total_materiales, total_cotizacion, estado_cotizacion, estado_solicitud } = req.body;
+  const { solicitud, servicios, fecha_inicio, fecha_vencimiento, representante, subtotal, total_servicios, total_materiales, total_cotizacion, estado_cotizacion, estado_solicitud } = req.body;
 
   try {
     // Si existe la solicitud, se asume que la cotización se crea a partir de ella
@@ -267,6 +267,7 @@ const postCotizacion = async (req, res) => {
       servicios: serviciosCotizacion, 
       fecha_inicio,
       fecha_vencimiento,
+      representante,  
       subtotal,
       total_servicios,
       total_materiales,

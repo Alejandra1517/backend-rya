@@ -105,7 +105,6 @@ const deleteServicio = async (req, res) => {
 )}
 
 
-
 module.exports = {
     getServicio,
     getServicioById,
