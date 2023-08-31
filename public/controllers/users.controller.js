@@ -90,7 +90,7 @@ const postUser = async (req, res) => {
     console.log('Error al guardar el usuario:', error);
     res.status(500).json({
       ok: false,
-      msg: 'El usuario ya se encuentra registrado en la base de datos.',
+      msg: 'El usuario ya se encuentra registrado en la base de datos.'
     });
   }
 };
