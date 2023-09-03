@@ -29,17 +29,22 @@ const getCotizaciones = async (req, res) => {
       path: 'solicitud',
       populate: {
         path: 'clienteId',
-        model: 'cliente', // Reemplaza 'Cliente' por el nombre correcto del modelo de cliente
+        model: 'cliente', 
       },
     });
 
     const cotizacionesConNombres = Cotizaciones.map((cotizacion) => {
       // Procesar los datos para devolver el resultado en el formato deseado
       const serviciosFormateados = cotizacion.servicios.map((servicio) => ({
+        actividad: servicio.actividad,
+        unidad: servicio.unidad,
         cantidad: servicio.cantidad,
-        descripcion: servicio.descripcion,
-        materialesSeleccionados: servicio.materialesSeleccionados,
-        servicio: servicio.servicio, // Reemplaza si es necesario por el campo adecuado que contiene el ID del servicio
+        valor_unitario: servicio.valor_unitario,
+
+        // cantidad: servicio.cantidad,
+        // descripcion: servicio.descripcion,
+        // materialesSeleccionados: servicio.materialesSeleccionados,
+        // servicio: servicio.servicio, 
       }));
       
       return {
@@ -85,28 +90,37 @@ const getCotizacionById = async (req, res) => {
     // Obtener los nombres de los servicios en la cotización
     const serviciosFormateados = await Promise.all(
       cotizacion.servicios.map(async (servicio) => {
-        const servicioEncontrado = await Servicio.findById(servicio.servicio);
+        // const servicioEncontrado = await Servicio.findById(servicio.servicio);
 
-        if (servicioEncontrado) {
+        // if (servicioEncontrado) {
           return {
-            servicio: servicio.servicio,
-            nombre_servicio: servicioEncontrado.nombre_servicio,
-            cantidad: servicio.cantidad,
-            descripcion: servicio.descripcion,
-            materialesSeleccionados: servicio.materialesSeleccionados,
+            
+            // servicio: {
+              materialesSeleccionados: servicio.materialesSeleccionados,
+              actividad: servicio.actividad,
+              unidad: servicio.unidad,
+              cantidad: servicio.cantidad,
+              valor_unitario: servicio.valor_unitario,
+              valor_total: servicio.valor_total
+          // }
+
+
+            // nombre_servicio: servicioEncontrado.nombre_servicio,
+            // cantidad: servicio.cantidad,
+            // descripcion: servicio.descripcion,
+            // materialesSeleccionados: servicio.materialesSeleccionados
           };
-        } else {
-          return {
-            cantidad: servicio.cantidad,
-            descripcion: servicio.descripcion,
-            materialesSeleccionados: servicio.materialesSeleccionados,
-            nombre_servicio: servicio.nombre_servicio
-          };
-        }
+        // } else {
+          // return {
+          //   cantidad: servicio.cantidad,
+          //   descripcion: servicio.descripcion,
+          //   materialesSeleccionados: servicio.materialesSeleccionados,
+          //   nombre_servicio: servicio.nombre_servicio
+          // };
+        // }
       })
     );
 
-      console.log("c", cotizacionId.correo_cliente)
 
     const cotizacionConNombre = {
       ...cotizacion._doc,

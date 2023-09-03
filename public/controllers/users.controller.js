@@ -93,7 +93,7 @@ const postUser = async (req, res) => {
       msg: 'El usuario ya se encuentra registrado en la base de datos.'
     });
   }
-};
+};0.
 
 
 
