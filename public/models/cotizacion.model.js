@@ -1,6 +1,8 @@
 const mongoose = require('mongoose');
 const { Schema, model } = require('mongoose');
 
+
+
 const CotizacionModel = new Schema({
     solicitud: { type: mongoose.Schema.Types.ObjectId, ref: 'Solicitud' },
     servicios: [{
@@ -9,23 +11,28 @@ const CotizacionModel = new Schema({
         // nombre_servicio: { type: String },
         // cantidad: { type: Number, default: 1 }, // Agregar campo cantidad
         // descripcion: { type: String }, // Agregar campo descripción
-
         actividad: { type: String },
         unidad: { type: String },
         cantidad: { type: Number },
         valor_unitario: { type: Number },
         valor_total: { type: Number },
-
-        materialesSeleccionados: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Material' }],
+        materialesSeleccionados: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Material' }]
     }],
+
     fecha_inicio: { type: Date },
-    fecha_vencimiento: { type: Date },
-    subtotal: { type: Number },
+    fecha_vencimiento: { type: Date }, // Cambiado a tipo Date
+    // fecha_vencimiento: { type: String},
+    representante: { type: String },
+    cliente: { type: String },
+    // subtotal: { type: Number },
     total_servicios: { type: Number },
     total_materiales: { type: Number },
     total_cotizacion: { type: Number },
-    estado_cotizacion: { type: Number },
-    estado_solicitud: { type: Number }
+    estado_cotizacion: { type: Number }
+    // estado_solicitud: { type: Number }
 });
+
+
+
 
 module.exports = model('cotizacion', CotizacionModel);

@@ -8,7 +8,7 @@ const SolicitudModel = new Schema({
       personalizado: { type: Boolean, default: false }, // Indica si el servicio es personalizado
       nombre_servicio: { type: String }, // Nombre del servicio en caso de ser personalizado
       cantidad: { type: Number },
-      descripcion: { type: String },
+      descripcion: { type: String }
     },
   ],
   clienteId: { type: mongoose.Schema.Types.ObjectId, ref: 'cliente', required: true }, // Referencia al cliente que realizó la solicitud
@@ -18,7 +18,7 @@ const SolicitudModel = new Schema({
   telefono: { type: String },
   imagen_referencia: { type: String },
   estado_solicitud: { type: Number },
-  fecha_envio: { type: Date },
+  fecha_envio: { type: Date }
 });
 
 SolicitudModel.set('toJSON', {
@@ -26,7 +26,7 @@ SolicitudModel.set('toJSON', {
     ret.id_solicitud = ret._id; // Renombra _id a id_solicitud
     delete ret._id; // Elimina el campo _id
     delete ret.__v; // Elimina el campo __v
-  },
+  }
 });
 
 module.exports = model('Solicitud', SolicitudModel);

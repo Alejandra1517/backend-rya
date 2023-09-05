@@ -6,6 +6,7 @@ const Servicio = require('../models/servicio.model')
 
 const Material = require('../models/material.model')
 
+const { format } = require('date-fns'); // Importa la función de formato de date-fns
 
 const getMateriales = async (req, res) => {
   try {
@@ -145,7 +146,7 @@ const getCotizacionById = async (req, res) => {
 const putCotizacion = async (req, res) => {
   try {
     const id = req.params.id;
-    const { servicios, fecha_vencimiento, total_servicio, estado_cotizacion, estado_solicitud } = req.body;
+    const { servicios, fecha_vencimiento, total_servicio, estado_cotizacion } = req.body;
 
     // Crea un array para almacenar los servicios de la cotización
     const serviciosCotizacion = [];
@@ -172,8 +173,7 @@ const putCotizacion = async (req, res) => {
       servicios: serviciosCotizacion,
       fecha_vencimiento,
       total_servicio,
-      estado_cotizacion,
-      estado_solicitud,
+      estado_cotizacion
     });
 
     res.json({
@@ -218,7 +218,44 @@ const getCotizacionesPorClienteId = async (req, res) => {
 
 
 const postCotizacion = async (req, res) => {
-  const { solicitud, servicios, fecha_inicio, fecha_vencimiento, representante, subtotal, total_servicios, total_materiales, total_cotizacion, estado_cotizacion, estado_solicitud } = req.body;
+  const { solicitud, servicios, fecha_inicio, representante, cliente, subtotal, total_servicios, total_materiales, total_cotizacion, estado_cotizacion } = req.body;
+
+ 
+
+
+
+// Obtén la cadena de fecha formateada, por ejemplo, desde el cuerpo de la solicitud
+const fechaVencimientoString = req.body.fecha_vencimiento;
+
+// Divide la cadena y realiza la conversión de fecha aquí
+const [day, month, year] = fechaVencimientoString.split('/');
+// Construye la fecha en el formato 'mes/día/año'
+const fechaVencimientoFormatted = `${year}-${month}-${day}`; // Formato ISO yyyy-MM-dd
+// Convierte la fecha formateada en un objeto Date
+const fecha_vencimiento = new Date(fechaVencimientoFormatted);
+
+console.log("Fecha formateada: ", fecha_vencimiento);
+
+// Formatea la fecha en el formato deseado: 27/09/2023
+const fechaFormateada = format(fecha_vencimiento, 'dd/MM/yyyy');
+
+console.log("Fecha formateada: ", fechaFormateada);
+
+
+// Obtén la cadena de fecha formateada, por ejemplo, desde el cuerpo de la solicitud
+// const fechaVencimientoString = req.body.fecha_vencimiento;
+
+// // Divide la cadena y realiza la conversión de fecha aquí
+// const [day, month, year] = fechaVencimientoString.split('/');
+// // Construye la fecha en el formato 'mes/día/año'
+// const fechaVencimientoFormatted = `${month}/${day}/${year}`;
+// // Convierte la fecha formateada en un objeto Date
+// const fechaVencimiento = new Date(fechaVencimientoFormatted);
+
+// // Formatea la fecha en el nuevo formato "día/mes/año" usando date-fns
+// const fecha_vencimiento = format(fechaVencimiento, 'dd/MM/yyyy');
+
+// console.log("Fecha formateada: ", fecha_vencimiento);
 
   try {
     // Si existe la solicitud, se asume que la cotización se crea a partir de ella
@@ -253,7 +290,7 @@ const postCotizacion = async (req, res) => {
           unidad: servicio.unidad,
           cantidad: servicio.cantidad,
           valor_unitario: servicio.cantidad,
-          total: servicio.total,
+          valor_total: servicio.total,
 
           // servicio: servicio.servicio,
           // nombre_servicio: servicio.nombre_servicio,
@@ -280,14 +317,14 @@ const postCotizacion = async (req, res) => {
       solicitud,
       servicios: serviciosCotizacion, 
       fecha_inicio,
-      fecha_vencimiento,
+      fecha_vencimiento: fechaFormateada,
       representante,  
+      cliente,
       subtotal,
       total_servicios,
       total_materiales,
       total_cotizacion,
-      estado_cotizacion,
-      estado_solicitud,
+      estado_cotizacion
     });
 
     // Guarda la cotización en la base de datos
