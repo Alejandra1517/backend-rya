@@ -218,98 +218,43 @@ const getCotizacionesPorClienteId = async (req, res) => {
 
 
 const postCotizacion = async (req, res) => {
-  const { solicitud, servicios, fecha_inicio, representante, cliente, subtotal, total_servicios, total_materiales, total_cotizacion, estado_cotizacion } = req.body;
+  const { solicitud, servicios, fecha_inicio, fecha_vencimiento, representante, cliente, subtotal, total_servicios, total_materiales, total_cotizacion, estado_cotizacion } = req.body;
 
  
+  const [day, month, year] = fecha_vencimiento.split('/');
+  const fechaVencimientoFormatted = new Date(`${year}-${month}-${day}`);
 
-
-
-// Obtén la cadena de fecha formateada, por ejemplo, desde el cuerpo de la solicitud
-const fechaVencimientoString = req.body.fecha_vencimiento;
-
-// Divide la cadena y realiza la conversión de fecha aquí
-const [day, month, year] = fechaVencimientoString.split('/');
-// Construye la fecha en el formato 'mes/día/año'
-const fechaVencimientoFormatted = `${year}-${month}-${day}`; // Formato ISO yyyy-MM-dd
-// Convierte la fecha formateada en un objeto Date
-const fecha_vencimiento = new Date(fechaVencimientoFormatted);
-
-console.log("Fecha formateada: ", fecha_vencimiento);
-
-// Formatea la fecha en el formato deseado: 27/09/2023
-const fechaFormateada = format(fecha_vencimiento, 'dd/MM/yyyy');
-
-console.log("Fecha formateada: ", fechaFormateada);
-
-
-// Obtén la cadena de fecha formateada, por ejemplo, desde el cuerpo de la solicitud
-// const fechaVencimientoString = req.body.fecha_vencimiento;
-
-// // Divide la cadena y realiza la conversión de fecha aquí
-// const [day, month, year] = fechaVencimientoString.split('/');
-// // Construye la fecha en el formato 'mes/día/año'
-// const fechaVencimientoFormatted = `${month}/${day}/${year}`;
-// // Convierte la fecha formateada en un objeto Date
-// const fechaVencimiento = new Date(fechaVencimientoFormatted);
-
-// // Formatea la fecha en el nuevo formato "día/mes/año" usando date-fns
-// const fecha_vencimiento = format(fechaVencimiento, 'dd/MM/yyyy');
-
-// console.log("Fecha formateada: ", fecha_vencimiento);
 
   try {
-    // Si existe la solicitud, se asume que la cotización se crea a partir de ella
-    // let solicitudExistente;
-    // if (solicitud) {
-    //   solicitudExistente = await Solicitud.findById(solicitud);
-    //   if (!solicitudExistente) {
-    //     return res.status(404).json({ error: 'La solicitud no existe.' });
-    //   }
-    // }
 
-    // Crea un array para almacenar los servicios de la cotización
+    // Convierte la cadena de fecha en el formato deseado: "día/mes/año"
+    // const [day, month, year] = fechaVencimientoString.split('/');
+    // const fechaVencimientoFormatted = `${day}/${month}/${year}`;
+
+
+    // Almacena los servicios de la cotización
     const serviciosCotizacion = [];
 
-    // Itera sobre los servicios recibidos en el cuerpo de la solicitud
+    // Iterar sobre los servicios recibidos en el cuerpo de la solicitud
     for (const servicio of servicios) {
-      // Verifica si el servicio tiene una solicitud asociada
-
-      // if (servicio.tipo === 'solicitud') {
-      //   if (!solicitudExistente) {
-      //     return res.status(400).json({ error: 'No se puede asociar un servicio de solicitud sin proporcionar una solicitud válida.' });
-      //   }
-        // Si el servicio proviene de una solicitud, busca el servicio en la solicitud por su ID
-        // const servicioSolicitud = solicitudExistente.servicios.find((serv) => serv.servicio.toString() === servicio.actividad);
-        // if (!servicioSolicitud) {
-        //   return res.status(404).json({ error: `El servicio con ID ${servicio.servicio} no está registrado en la solicitud.` });
-        // }
+   
         // Crea una copia del servicio de la solicitud y agrega la cantidad y descripción de la cotización
         const servicioCotizacion = {
+
           tipo: servicio.tipo, // Establecer el tipo para los servicios de solicitud
           actividad: servicio.actividad,
           unidad: servicio.unidad,
           cantidad: servicio.cantidad,
           valor_unitario: servicio.cantidad,
           valor_total: servicio.total,
-
-          // servicio: servicio.servicio,
-          // nombre_servicio: servicio.nombre_servicio,
-          // cantidad: servicio.cantidad,
-          // descripcion: servicio.descripcion,
-          materialesSeleccionados: servicio.materialesSeleccionados, // Asocia los materiales seleccionados al servicio de la cotización
+          materialesSeleccionados: servicio.materialesSeleccionados, // Asociar los materiales seleccionados al servicio de la cotización
+        
         };
 
 
         serviciosCotizacion.push(servicioCotizacion);
-      // } else if (servicio.tipo === 'cotizacion') {
 
-      //   Si el servicio no tiene una solicitud asociada, lo agrega tal cual a la cotización
-      //   serviciosCotizacion.push(servicio);
-      // } else {
-      //   return res.status(400).json({ error: `El campo 'tipo' del servicio con ID ${servicio.servicio} es inválido.` });
-      // }
     }
-
 
 
     // Crea la cotización con los servicios correspondientes
@@ -317,7 +262,7 @@ console.log("Fecha formateada: ", fechaFormateada);
       solicitud,
       servicios: serviciosCotizacion, 
       fecha_inicio,
-      fecha_vencimiento: fechaFormateada,
+      fecha_vencimiento: new Date(fechaVencimientoFormatted), // Almacena la fecha formateada como un objeto de fecha
       representante,  
       cliente,
       subtotal,
@@ -327,7 +272,7 @@ console.log("Fecha formateada: ", fechaFormateada);
       estado_cotizacion
     });
 
-    // Guarda la cotización en la base de datos
+
     await saveCotizacion.save();
 
     res.json({
