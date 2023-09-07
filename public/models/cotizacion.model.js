@@ -5,6 +5,7 @@ const { Schema, model } = require('mongoose');
 
 const CotizacionModel = new Schema({
     solicitud: { type: mongoose.Schema.Types.ObjectId, ref: 'Solicitud' },
+    cliente: { type: mongoose.Schema.Types.ObjectId, ref: 'Cliente' },
     servicios: [{
         tipo: { type: String, enum: ['solicitud', 'cotizacion'], required: true }, // Tipo de entidad: 'solicitud' o 'cotizacion'
         // servicio: { type: mongoose.Schema.Types.ObjectId, ref: 'Servicio' },
@@ -20,10 +21,8 @@ const CotizacionModel = new Schema({
     }],
 
     fecha_inicio: { type: Date },
-    fecha_vencimiento: { type: Date }, // Cambiado a tipo Date
-    // fecha_vencimiento: { type: String},
+    fecha_vencimiento: { type: Date },
     representante: { type: String },
-    cliente: { type: String },
     // subtotal: { type: Number },
     total_servicios: { type: Number },
     total_materiales: { type: Number },

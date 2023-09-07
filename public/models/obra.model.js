@@ -5,10 +5,11 @@ const ObraModel = new Schema({
   cotizacion: { type: mongoose.Schema.Types.ObjectId, ref: 'Cotizacion' }, // Referencia a la cotización
   servicios: [
     {
-      servicio: { type: mongoose.Schema.Types.ObjectId, ref: 'Servicio' },
-      nombre_servicio: { type: String },
+      // servicio: { type: mongoose.Schema.Types.ObjectId, ref: 'Servicio' },
+      // nombre_servicio: { type: String },
+      actividad: { type: String },
+      unidad: { type: String },
       cantidad: { type: Number, default: 1 },
-      descripcion: { type: String },
       materialesSeleccionados: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Material' }],
     },
   ],

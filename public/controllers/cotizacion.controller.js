@@ -51,6 +51,7 @@ const getCotizaciones = async (req, res) => {
       return {
         ...cotizacion._doc,
         nombre_cliente: cotizacion.solicitud?.clienteId?.nombre_cliente || 'Cliente desconocido',
+        correo: cotizacion.solicitud?.clienteId?.correo || 'Correo desconocido',
         descripcion_solicitud: cotizacion.solicitud?.descripcion || '',
         cantidad_solicitud: cotizacion.solicitud?.cantidad || 0,
         servicios: serviciosFormateados,
@@ -126,6 +127,7 @@ const getCotizacionById = async (req, res) => {
     const cotizacionConNombre = {
       ...cotizacion._doc,
       correo_cliente: cotizacion.solicitud?.clienteId?.correo || cotizacionId.correo_cliente,
+      nombre_cliente: cotizacion.solicitud?.clienteId?.nombre_cliente || cotizacionId.nombre_cliente,
       descripcion_solicitud: cotizacion.solicitud?.descripcion || '',
       cantidad_solicitud: cotizacion.solicitud?.cantidad || 0,
       servicios: serviciosFormateados,

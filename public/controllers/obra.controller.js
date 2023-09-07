@@ -76,9 +76,11 @@ const getObras = async (req, res) => {
             );
             
             return {
-              servicio: servicio.servicio,
+              // servicio: servicio.servicio,
+              actividad: servicio.actividad,
+              unidad: servicio.unidad,
               cantidad: servicio.cantidad,
-              descripcion: servicio.descripcion,
+              // descripcion: servicio.descripcion,
               materiales: materiales,
               _id: servicio._id,
             };
@@ -113,17 +115,18 @@ const postObra = async (req, res) => {
   const { cotizacionId, nombre_servicio, correo_cliente, empleado_encargado, fecha_inicio, estado_servicio } = req.body;
 
   try {
-    const cotizacion = await Cotizacion.findById(cotizacionId).populate('servicios.servicio');
+    const cotizacion = await Cotizacion.findById(cotizacionId)
+    // .populate('servicios.servicio');
 
-    if (!cotizacion) {
-      return res.status(404).json({ error: 'La cotización no existe.' });
-    }
+    // if (!cotizacion) {
+    //   return res.status(404).json({ error: 'La cotización no existe.' });
+    // }
 
     const serviciosCotizacion = cotizacion.servicios.map((servicioCotizado) => ({
-      servicio: servicioCotizado.servicio,
-      nombre_servicio: servicioCotizado.nombre_servicio,
+      // servicio: servicioCotizado.servicio,
+      actividad: servicioCotizado.actividad,
+      unidad: servicioCotizado.unidad,
       cantidad: servicioCotizado.cantidad,
-      descripcion: servicioCotizado.descripcion,
       materialesSeleccionados: servicioCotizado.materialesSeleccionados,
     }));
 
