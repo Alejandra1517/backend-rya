@@ -8,6 +8,10 @@ const Material = require('../models/material.model')
 
 const { format } = require('date-fns'); // Importa la función de formato de date-fns
 
+const nodemailer = require('nodemailer');
+
+
+
 const getMateriales = async (req, res) => {
   try {
     const materiales = await Material.find();
@@ -155,6 +159,11 @@ const putCotizacion = async (req, res) => {
     const id = req.params.id;
     const { servicios, fecha_vencimiento, total_servicio, estado_cotizacion } = req.body;
 
+
+    const [day, month, year] = fecha_vencimiento.split('/');
+    const fechaVencimientoFormatted = new Date(`${year}-${month}-${day}`);
+
+
     // Crea un array para almacenar los servicios de la cotización
     const serviciosCotizacion = [];
 
@@ -162,11 +171,12 @@ const putCotizacion = async (req, res) => {
     for (const servicio of servicios) {
 
       const servicioCotizacion = {
-        servicio: servicio.servicio,
-        nombre_servicio: servicio.nombre_servicio,
+        actividad: servicio.actividad,
+        unidad: servicio.unidad,
         cantidad: servicio.cantidad,
-        descripcion: servicio.descripcion,
-        materialesSeleccionados: servicio.materialesSeleccionados,
+        valor_unitario: servicio.valor_unitario,
+        subtotal: servicio.subtotal,
+        materialesSeleccionados: servicio.materialesSeleccionados
       };
       
       
@@ -178,7 +188,7 @@ const putCotizacion = async (req, res) => {
     // Actualiza la cotización con los servicios correspondientes y otros campos
     await Cotizacion.findByIdAndUpdate(id, {
       servicios: serviciosCotizacion,
-      fecha_vencimiento,
+      fecha_vencimiento: new Date(fechaVencimientoFormatted), // Almacena la fecha formateada como un objeto de fecha
       total_servicio,
       estado_cotizacion
     });
@@ -292,6 +302,78 @@ const postCotizacion = async (req, res) => {
   }
 };
 
+
+
+// Ruta para enviar un correo electrónico
+const postEmail = async (req, res) => {
+
+  try {
+      // const cotizacionId = req.params.cotizacionId;
+      // const cotizacion = await Cotizacion.findById(cotizacionId);
+
+      // if (!cotizacion) {
+      //     return res.status(404).json({ error: 'La cotización no existe.' });
+      // }
+
+
+
+      // Configurar nodemailer con tus credenciales
+      const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+          user: 'mabuitrago00@misena.edu.co',
+          pass: '1026130800',
+        },
+      });
+
+
+
+      // Cuerpo del correo electrónico
+      const cuerpoCorreo = `
+          Hola,
+          
+          Adjuntamos la cotización N°  efectuada el día $.
+          Valor total de la cotización: .
+          
+          Atentamente,
+          Equipo Reformas y Acabados
+      `;
+
+      // Configura el mensaje de correo
+      const mailOptions = {
+          from: 'tucorreo@gmail.com', // Tu dirección de correo electrónico
+          to: 'alejandrabuitrago1517@gmail.com', // La dirección de correo del cliente
+          subject: 'Cotización - Reformas y Acabados',
+          text: cuerpoCorreo,
+      };
+
+      // Envía el correo electrónico
+      transporter.sendMail(mailOptions, (error, info) => {
+          if (error) {
+              console.error(error);
+              return res.status(500).json({ error: 'Error al enviar el correo electrónico.' });
+          } else {
+              console.log('Correo electrónico enviado: ' + info.response);
+              return res.json({ message: 'Correo electrónico enviado exitosamente.' });
+          }
+      });
+  } catch (error) {
+      console.error(error);
+      return res.status(500).json({ error: 'Error interno del servidor.' });
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
 const deleteCotizacion = async (req, res) => {
 
     const  id = req.params.id
@@ -307,23 +389,6 @@ const deleteCotizacion = async (req, res) => {
 
 }
 
-const deleteAllCotizaciones = async (req, res) => {
-    try {
-      await Cotizacion.deleteMany({}); // Elimina todos los registros de la colección Cotizacion
-      
-      return res.json({
-        ok: 200,
-        msg: "Todos los Cotizacions han sido eliminados correctamente",
-      });
-    } catch (error) {
-      console.error(error);
-      return res.status(500).json({
-        ok: 500,
-        msg: "Ocurrió un error al eliminar los Cotizacions",
-      });
-    }
-  };
-  
 
 
 module.exports = {
@@ -333,10 +398,9 @@ module.exports = {
     getCotizacionById,
     getCotizacionesPorClienteId,
     postCotizacion,
+    postEmail,
     putCotizacion,
-    deleteCotizacion,
-    deleteAllCotizaciones
-
+    deleteCotizacion
 
 }
 

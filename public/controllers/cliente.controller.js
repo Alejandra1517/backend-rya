@@ -32,7 +32,7 @@ const postCliente = async (req, res) => {
       documento,
       telefono,
       direccion,
-      estado,
+      estado
     });
 
     await saveCliente.save();
@@ -47,8 +47,8 @@ const postCliente = async (req, res) => {
     }
 
     // Si el correo del cliente no está registrado como usuario, crearemos un usuario para él
-    const newRolId = '64c6538864a92a69719c9373'; // Reemplaza esto con el _id del rol que deseas asignar al cliente
-    const rol = await Rol.findById(newRolId); // Asegúrate de tener el modelo de Rol importado y la colección de roles existente
+    const newRolId = '64c6538864a92a69719c9373'; //  rol cliente
+    const rol = await Rol.findById(newRolId); 
 
     if (!rol) {
       return res.status(404).json({

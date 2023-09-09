@@ -108,7 +108,7 @@ const postAuth = async (req = request, res = response ) => {
 
            return res.status(400).json({
 
-                msg: "Error! la contraseña no coincide"
+              msg: "Error! la contraseña no coincide"
 
             })
         }
@@ -236,7 +236,6 @@ module.exports = {
     getActualUser,
     forgotPassword,
     resetPassword
-
 
 }
 
