@@ -55,7 +55,10 @@ const getCotizaciones = async (req, res) => {
         descripcion_solicitud: cotizacion.solicitud?.descripcion || '',
         cantidad_solicitud: cotizacion.solicitud?.cantidad || 0,
         servicios: serviciosFormateados,
-      };
+        total_servicios: cotizacion.total_servicios || 0,
+        total_materiales: cotizacion.total_materiales || 0,
+        total_cotizacion: cotizacion.total_cotizacion || 0
+       };
       
     
     }
@@ -131,6 +134,8 @@ const getCotizacionById = async (req, res) => {
       descripcion_solicitud: cotizacion.solicitud?.descripcion || '',
       cantidad_solicitud: cotizacion.solicitud?.cantidad || 0,
       servicios: serviciosFormateados,
+      // subtotal: cotizacion.solicitud?.servicios?.subtotal || 0
+
     };
 
     res.json({ cotizacion: cotizacionConNombre });
@@ -247,8 +252,8 @@ const postCotizacion = async (req, res) => {
           actividad: servicio.actividad,
           unidad: servicio.unidad,
           cantidad: servicio.cantidad,
-          valor_unitario: servicio.cantidad,
-          valor_total: servicio.total,
+          valor_unitario: servicio.valor_unitario,
+          valor_total: servicio.valor_total,
           materialesSeleccionados: servicio.materialesSeleccionados, // Asociar los materiales seleccionados al servicio de la cotización
         
         };
