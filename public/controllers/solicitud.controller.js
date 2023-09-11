@@ -7,6 +7,7 @@ const User = require('../models/users.model')
 
 const Servicio = require('../models/servicio.model')
 
+
 const { io } = require('../../source/server');
 
 
@@ -224,6 +225,35 @@ const postSolicitud = async (req, res) => {
 
 
 
+//Para la vista de cliente 
+const getSolicitudesPorClienteId = async (req, res) => {
+  const clienteId = req.params.clienteId;
+
+  console.log("Cliente id", clienteId)
+
+  try {
+    // Obtener las solicitudes asociadas al ID del cliente y poblar los datos del cliente en ellas
+    const solicitudes = await Solicitud.find({
+      clienteId: clienteId,
+    }).populate('clienteId', 'nombre_cliente'); // 'nombre_cliente' es el campo a seleccionar del cliente
+
+    res.json({
+      solicitudes,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      ok: false,
+      msg: 'Ocurrió un error al obtener las solicitudes asociadas al cliente',
+    });
+  }
+};
+
+
+
+
+
+
 
 const deleteSolicitud = async (req, res) => {
   try {
@@ -257,6 +287,7 @@ const deleteSolicitud = async (req, res) => {
 module.exports = {
 
     getSolicitudes,
+    getSolicitudesPorClienteId,
     postSolicitud,
     putServicioSolicitud,
     deleteSolicitud

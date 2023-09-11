@@ -2,7 +2,7 @@ const Cotizacion = require('../models/cotizacion.model')
 
 const Solicitud = require('../models/solicitud.model')
 
-const Servicio = require('../models/servicio.model')
+const Cliente = require('../models/cliente.model')
 
 const Material = require('../models/material.model')
 
@@ -28,45 +28,94 @@ const getMateriales = async (req, res) => {
 };
 
 
-const getCotizaciones = async (req, res) => {
-  try {
-    const Cotizaciones = await Cotizacion.find().populate({
-      path: 'solicitud',
-      populate: {
-        path: 'clienteId',
-        model: 'cliente', 
-      },
-    });
+// const getCotizaciones = async (req, res) => {
+//   try {
+//     const Cotizaciones = await Cotizacion.find().populate({
+//       path: 'solicitud',
+//       populate: {
+//         path: 'clienteId',
+//         model: 'cliente', 
+//       },
+//     });
 
-    const cotizacionesConNombres = Cotizaciones.map((cotizacion) => {
-      // Procesar los datos para devolver el resultado en el formato deseado
-      const serviciosFormateados = cotizacion.servicios.map((servicio) => ({
-        actividad: servicio.actividad,
-        unidad: servicio.unidad,
-        cantidad: servicio.cantidad,
-        valor_unitario: servicio.valor_unitario,
+//     const cotizacionesConNombres = Cotizaciones.map((cotizacion) => {
+//       // Procesar los datos para devolver el resultado en el formato deseado
+//       const serviciosFormateados = cotizacion.servicios.map((servicio) => ({
+//         actividad: servicio.actividad,
+//         unidad: servicio.unidad,
+//         cantidad: servicio.cantidad,
+//         valor_unitario: servicio.valor_unitario,
 
-        // cantidad: servicio.cantidad,
-        // descripcion: servicio.descripcion,
-        // materialesSeleccionados: servicio.materialesSeleccionados,
-        // servicio: servicio.servicio, 
-      }));
+//         // cantidad: servicio.cantidad,
+//         // descripcion: servicio.descripcion,
+//         // materialesSeleccionados: servicio.materialesSeleccionados,
+//         // servicio: servicio.servicio, 
+//       }));
       
-      return {
-        ...cotizacion._doc,
-        nombre_cliente: cotizacion.solicitud?.clienteId?.nombre_cliente || 'Cliente desconocido',
-        correo: cotizacion.solicitud?.clienteId?.correo || 'Correo desconocido',
-        descripcion_solicitud: cotizacion.solicitud?.descripcion || '',
-        cantidad_solicitud: cotizacion.solicitud?.cantidad || 0,
-        servicios: serviciosFormateados,
-        total_servicios: cotizacion.total_servicios || 0,
-        total_materiales: cotizacion.total_materiales || 0,
-        total_cotizacion: cotizacion.total_cotizacion || 0
-       };
+
+//       return {
+//         ...cotizacion._doc,
+//         nombre_cliente: cotizacion.clienteId || 'Cliente desconocido',
+//         correo: cotizacion.clienteId?.correo || 'Correo desconocido',
+//         // nombre_cliente: cotizacion?.nombre_cliente || 'Cliente desconocido',
+//         // correo: cotizacion.correo || 'Correo desconocido',
+//         descripcion_solicitud: cotizacion.solicitud?.descripcion || '',
+//         cantidad_solicitud: cotizacion.solicitud?.cantidad || 0,
+//         servicios: serviciosFormateados,
+//         total_servicios: cotizacion.total_servicios || 0,
+//         total_materiales: cotizacion.total_materiales || 0,
+//         total_cotizacion: cotizacion.total_cotizacion || 0
+//        };
       
     
-    }
+//     }
+//     );
+//     res.json({
+//       Cotizaciones: cotizacionesConNombres,
+//     });
+//   } catch (error) {
+//     console.error(error);
+//     return res.status(500).json({
+//       ok: 500,
+//       msg: "Ocurrió un error al obtener las cotizaciones",
+//     });
+//   }
+// };
+
+
+const getCotizaciones = async (req, res) => {
+  try {
+    const cotizaciones = await Cotizacion.find().populate({
+      path: 'solicitud',
+      select: 'clienteId', // Selecciona solo el campo clienteId de la solicitud
+    });
+
+    const cotizacionesConNombres = await Promise.all(
+      cotizaciones.map(async (cotizacion) => {
+        const serviciosFormateados = cotizacion.servicios.map((servicio) => ({
+          actividad: servicio.actividad,
+          unidad: servicio.unidad,
+          cantidad: servicio.cantidad,
+          valor_unitario: servicio.valor_unitario,
+        }));
+
+        // Obtenemos el cliente utilizando el clienteId de la solicitud
+        const cliente = await Cliente.findById(cotizacion.clienteId);
+
+        return {
+          ...cotizacion._doc,
+          nombre_cliente: cliente ? cliente.nombre_cliente : 'Cliente desconocido',
+          correo: cliente ? cliente.correo : 'Correo desconocido',
+          // descripcion_solicitud: cotizacion.solicitud.descripcion || '',
+          cantidad_solicitud: cotizacion.solicitud.cantidad || 0,
+          servicios: serviciosFormateados,
+          total_servicios: cotizacion.total_servicios || 0,
+          total_materiales: cotizacion.total_materiales || 0,
+          total_cotizacion: cotizacion.total_cotizacion || 0,
+        };
+      })
     );
+
     res.json({
       Cotizaciones: cotizacionesConNombres,
     });
@@ -74,10 +123,13 @@ const getCotizaciones = async (req, res) => {
     console.error(error);
     return res.status(500).json({
       ok: 500,
-      msg: "Ocurrió un error al obtener las cotizaciones",
+      msg: 'Ocurrió un error al obtener las cotizaciones',
     });
   }
 };
+
+
+
 
 
 const getCotizacionById = async (req, res) => {
@@ -204,9 +256,12 @@ const putCotizacion = async (req, res) => {
 };
 
 
-//Para la vista de cliente  (cosiderar si es necesaria la implementacion de esta peticion)
+//Para la vista de cliente 
 const getCotizacionesPorClienteId = async (req, res) => {
+
   const clienteId = req.params.clienteId;
+
+  console.log("Cliente id cotización", clienteId)
 
   try {
     // Obtener las cotizaciones asociadas al ID del cliente y poblar los datos del cliente en ellas
@@ -240,7 +295,7 @@ const getCotizacionesPorClienteId = async (req, res) => {
 
 
 const postCotizacion = async (req, res) => {
-  const { solicitud, servicios, fecha_inicio, fecha_vencimiento, representante, cliente, subtotal, total_servicios, total_materiales, total_cotizacion, estado_cotizacion } = req.body;
+  const { solicitud, servicios, fecha_inicio, fecha_vencimiento, representante, clienteId, subtotal, total_servicios, total_materiales, total_cotizacion, estado_cotizacion } = req.body;
 
  
   const [day, month, year] = fecha_vencimiento.split('/');
@@ -286,7 +341,7 @@ const postCotizacion = async (req, res) => {
       fecha_inicio,
       fecha_vencimiento: new Date(fechaVencimientoFormatted), // Almacena la fecha formateada como un objeto de fecha
       representante,  
-      cliente,
+      clienteId,
       subtotal,
       total_servicios,
       total_materiales,
