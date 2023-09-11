@@ -3,6 +3,8 @@ const Solicitud = require('../models/solicitud.model')
 
 const Cliente = require('../models/cliente.model')
 
+const User = require('../models/users.model')
+
 const Servicio = require('../models/servicio.model')
 
 const { io } = require('../../source/server');
@@ -69,9 +71,85 @@ const putServicioSolicitud = async (req, res ) => {
 };
 
 
+// const postSolicitud = async (req, res) => {
+//   try {
+//     const { 
+//       nombre_cliente,
+//       asunto,
+//       direccion,
+//       correo,
+//       telefono,
+//       imagen_referencia,
+//       estado_solicitud,
+//       fecha_envio,
+//       servicios,
+//     } = req.body;
+
+//     const cliente = await Cliente.findOne({ nombre_cliente });
+
+//     if (!cliente) {
+//       return res.status(404).json({ error: 'El cliente no está registrado.' });
+//     }
+
+//     const saveSolicitud = new Solicitud({
+//       clienteId: cliente._id,
+//       nombre_cliente,
+//       asunto,
+//       direccion,
+//       correo,
+//       telefono,
+//       imagen_referencia,
+//       estado_solicitud,
+//       fecha_envio,
+//       servicios: [],
+//     });
+
+//     for (const servicio of servicios) {
+//       if (servicio.personalizado) {
+//         saveSolicitud.servicios.push({
+//           nombre_servicio: servicio.nombre_servicio,
+//           personalizado: true,
+//           cantidad: servicio.cantidad,
+//           descripcion: servicio.descripcion,
+//         });
+
+//       } else {
+//         const servicioRegistrado = await Servicio.findById(servicio.servicio); //Busca los ids de los servicios de la "solicitud" en los servicios de la tabla "servicios"
+
+//         if (!servicioRegistrado) {
+//           return res.status(404).json({ error: `El servicio con ID ${servicio.servicio} no está registrado.` });
+//         }
+
+//         saveSolicitud.servicios.push({
+//           servicio: servicio.servicio,
+//           nombre_servicio: servicioRegistrado.nombre_servicio,
+//           personalizado: false,
+//           cantidad: servicio.cantidad,
+//           descripcion: servicio.descripcion,
+//         });
+//       }
+//     }
+
+//     await saveSolicitud.save();
+
+//       // Emitir notificación a través de Socket.io
+//       // io.emit('nuevaSolicitud', saveSolicitud);
+
+//     res.json({
+//       ok: true,
+//       msg: 'Solicitud guardada correctamente',
+//     });
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ error: 'Error interno del servidor.' });
+//   }
+// };
+
+
 const postSolicitud = async (req, res) => {
   try {
     const { 
+      clienteId,
       nombre_cliente,
       asunto,
       direccion,
@@ -83,42 +161,32 @@ const postSolicitud = async (req, res) => {
       servicios,
     } = req.body;
 
-    const cliente = await Cliente.findOne({ nombre_cliente });
+    const cliente = await User.findById(clienteId);
+
+    console.log("cliente encontrado", cliente)
 
     if (!cliente) {
       return res.status(404).json({ error: 'El cliente no está registrado.' });
     }
 
-    const saveSolicitud = new Solicitud({
-      clienteId: cliente._id,
-      nombre_cliente,
-      asunto,
-      direccion,
-      correo,
-      telefono,
-      imagen_referencia,
-      estado_solicitud,
-      fecha_envio,
-      servicios: [],
-    });
+    const serviciosSolicitud = [];
 
     for (const servicio of servicios) {
       if (servicio.personalizado) {
-        saveSolicitud.servicios.push({
+        serviciosSolicitud.push({
           nombre_servicio: servicio.nombre_servicio,
           personalizado: true,
-          cantidad: servicio.cantidad,
+          cantidad: servicio.cantidad,  
           descripcion: servicio.descripcion,
         });
-
       } else {
-        const servicioRegistrado = await Servicio.findById(servicio.servicio); //Busca los ids de los servicios de la "solicitud" en los servicios de la tabla "servicios"
+        const servicioRegistrado = await Servicio.findById(servicio.servicioId);
 
         if (!servicioRegistrado) {
           return res.status(404).json({ error: `El servicio con ID ${servicio.servicio} no está registrado.` });
         }
 
-        saveSolicitud.servicios.push({
+        serviciosSolicitud.push({
           servicio: servicio.servicio,
           nombre_servicio: servicioRegistrado.nombre_servicio,
           personalizado: false,
@@ -128,10 +196,20 @@ const postSolicitud = async (req, res) => {
       }
     }
 
-    await saveSolicitud.save();
+    const saveSolicitud = new Solicitud({
+      clienteId,
+      nombre_cliente,
+      asunto,
+      direccion,
+      correo,
+      telefono,
+      imagen_referencia,
+      estado_solicitud,
+      fecha_envio,
+      servicios: serviciosSolicitud,
+    });
 
-      // Emitir notificación a través de Socket.io
-      // io.emit('nuevaSolicitud', saveSolicitud);
+    await saveSolicitud.save();
 
     res.json({
       ok: true,
@@ -142,6 +220,8 @@ const postSolicitud = async (req, res) => {
     res.status(500).json({ error: 'Error interno del servidor.' });
   }
 };
+
+
 
 
 

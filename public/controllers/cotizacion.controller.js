@@ -219,7 +219,12 @@ const getCotizacionesPorClienteId = async (req, res) => {
     });
 
     // Extraer solo el nombre del cliente de las cotizaciones
-    const nombresClientes = cotizaciones.map((cotizacion) => cotizacion.solicitud.clienteId.nombre_cliente);
+    const nombresClientes = cotizaciones.map((cotizacion) => cotizacion._id);
+
+    // const nombresClientes = cotizaciones.map((cotizacion) => cotizacion.solicitud);
+
+    console.log("Nombres clientes", nombresClientes)
+
 
     res.json({
       nombresClientes,

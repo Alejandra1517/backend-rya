@@ -106,7 +106,6 @@ const postAuth = async (req = request, res = response ) => {
 
         const compararContrasena = bcrypt.compareSync(contrasena, usuario.contrasena)
 
-        console.log("Contraseña: ", Encriptada)
         console.log("Contraseña: ", usuario.contrasena)
 
         if(!compararContrasena){
