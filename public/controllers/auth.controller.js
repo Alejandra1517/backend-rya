@@ -13,6 +13,8 @@ const jwt = require('jsonwebtoken');
 const { generarJwt } = require('../helpers/jwt');
 
 
+const bcrypt = require('bcrypt')
+
 
 const forgotPassword = async (req = request, res = response) => {
   const { correo } = req.body;
@@ -86,12 +88,13 @@ const postAuth = async (req = request, res = response ) => {
 
         const usuario = await User.findOne( { correo })
 
+        console.log(usuario)
+
         if(!usuario){
             return res.status(400).json({
                 msg: "Detalles inválidos, vuelva a intentar"
             })
         }
-
 
         if(!usuario.estado){
 
@@ -101,8 +104,10 @@ const postAuth = async (req = request, res = response ) => {
 
         }
 
+        const compararContrasena = bcrypt.compareSync(contrasena, usuario.contrasena)
 
-        const compararContrasena = bycrypt.compareSync(contrasena, usuario.contrasena)
+        console.log("Contraseña: ", Encriptada)
+        console.log("Contraseña: ", usuario.contrasena)
 
         if(!compararContrasena){
 

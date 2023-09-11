@@ -63,8 +63,10 @@ const postUser = async (req, res) => {
     saveUser.cotizaciones = rol.cotizaciones;
     saveUser.obras = rol.obras;
 
+
     // Verificar si el rol del usuario es "cliente" para crear un registro en la tabla de clientes
-    if (rol.id.toString() === "64c6538864a92a69719c9373") {
+    if (rol._id.toString() == "64c6538864a92a69719c9373") {
+
       const saveCliente = new Cliente({
         nombre_cliente: nombre_completo,
         correo,
@@ -93,7 +95,7 @@ const postUser = async (req, res) => {
       msg: 'El usuario ya se encuentra registrado en la base de datos.'
     });
   }
-};0.
+};
 
 
 
