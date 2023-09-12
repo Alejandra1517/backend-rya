@@ -38,6 +38,7 @@ const getMateriales = async (req, res) => {
 //       },
 //     });
 
+    
 //     const cotizacionesConNombres = Cotizaciones.map((cotizacion) => {
 //       // Procesar los datos para devolver el resultado en el formato deseado
 //       const serviciosFormateados = cotizacion.servicios.map((servicio) => ({
@@ -52,13 +53,11 @@ const getMateriales = async (req, res) => {
 //         // servicio: servicio.servicio, 
 //       }));
       
+     
+
 
 //       return {
 //         ...cotizacion._doc,
-//         nombre_cliente: cotizacion.clienteId || 'Cliente desconocido',
-//         correo: cotizacion.clienteId?.correo || 'Correo desconocido',
-//         // nombre_cliente: cotizacion?.nombre_cliente || 'Cliente desconocido',
-//         // correo: cotizacion.correo || 'Correo desconocido',
 //         descripcion_solicitud: cotizacion.solicitud?.descripcion || '',
 //         cantidad_solicitud: cotizacion.solicitud?.cantidad || 0,
 //         servicios: serviciosFormateados,
@@ -66,8 +65,6 @@ const getMateriales = async (req, res) => {
 //         total_materiales: cotizacion.total_materiales || 0,
 //         total_cotizacion: cotizacion.total_cotizacion || 0
 //        };
-      
-    
 //     }
 //     );
 //     res.json({
@@ -82,16 +79,13 @@ const getMateriales = async (req, res) => {
 //   }
 // };
 
-
 const getCotizaciones = async (req, res) => {
   try {
-    const cotizaciones = await Cotizacion.find().populate({
-      path: 'solicitud',
-      select: 'clienteId', // Selecciona solo el campo clienteId de la solicitud
-    });
+    const Cotizaciones = await Cotizacion.find();
 
     const cotizacionesConNombres = await Promise.all(
-      cotizaciones.map(async (cotizacion) => {
+      Cotizaciones.map(async (cotizacion) => {
+        // Procesar los datos para devolver el resultado en el formato deseado
         const serviciosFormateados = cotizacion.servicios.map((servicio) => ({
           actividad: servicio.actividad,
           unidad: servicio.unidad,
@@ -99,15 +93,15 @@ const getCotizaciones = async (req, res) => {
           valor_unitario: servicio.valor_unitario,
         }));
 
-        // Obtenemos el cliente utilizando el clienteId de la solicitud
+        // Buscar el cliente directamente usando el clienteId de la cotización
         const cliente = await Cliente.findById(cotizacion.clienteId);
 
         return {
           ...cotizacion._doc,
-          nombre_cliente: cliente ? cliente.nombre_cliente : 'Cliente desconocido',
-          correo: cliente ? cliente.correo : 'Correo desconocido',
-          // descripcion_solicitud: cotizacion.solicitud.descripcion || '',
-          cantidad_solicitud: cotizacion.solicitud.cantidad || 0,
+          descripcion_solicitud: cotizacion.solicitud?.descripcion || '',
+          cantidad_solicitud: cotizacion.solicitud?.cantidad || 0,
+          cliente_nombre: cliente?.nombre_cliente || '',
+          cliente_correo: cliente?.correo || '',
           servicios: serviciosFormateados,
           total_servicios: cotizacion.total_servicios || 0,
           total_materiales: cotizacion.total_materiales || 0,
@@ -123,7 +117,7 @@ const getCotizaciones = async (req, res) => {
     console.error(error);
     return res.status(500).json({
       ok: 500,
-      msg: 'Ocurrió un error al obtener las cotizaciones',
+      msg: "Ocurrió un error al obtener las cotizaciones",
     });
   }
 };
@@ -131,9 +125,8 @@ const getCotizaciones = async (req, res) => {
 
 
 
-
 const getCotizacionById = async (req, res) => {
-  const cotizacionId = req.params.id;
+  const cotizacionId = req.params._id;
 
   try {
     const cotizacion = await Cotizacion.findById(cotizacionId).populate({
@@ -266,7 +259,7 @@ const getCotizacionesPorClienteId = async (req, res) => {
   try {
     // Obtener las cotizaciones asociadas al ID del cliente y poblar los datos del cliente en ellas
     const cotizaciones = await Cotizacion.find({
-      'solicitud.clienteId': clienteId,
+      'solicitud.clienteId': "64ff3021d94bab488bb40b7c",
     }).populate({
       path: 'solicitud.clienteId',
       model: 'Cliente', // Reemplaza 'Cliente' por el nombre correcto del modelo de cliente
