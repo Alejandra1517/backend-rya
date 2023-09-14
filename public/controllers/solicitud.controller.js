@@ -159,7 +159,7 @@ const postSolicitud = async (req, res) => {
       imagen_referencia,
       estado_solicitud,
       fecha_envio,
-      servicios,
+      servicios
     } = req.body;
 
     const cliente = await User.findById(clienteId);
@@ -178,7 +178,7 @@ const postSolicitud = async (req, res) => {
           nombre_servicio: servicio.nombre_servicio,
           personalizado: true,
           cantidad: servicio.cantidad,  
-          descripcion: servicio.descripcion,
+          descripcion: servicio.descripcion
         });
       } else {
         const servicioRegistrado = await Servicio.findById(servicio.servicioId);
@@ -207,7 +207,7 @@ const postSolicitud = async (req, res) => {
       imagen_referencia,
       estado_solicitud,
       fecha_envio,
-      servicios: serviciosSolicitud,
+      servicios: serviciosSolicitud
     });
 
     await saveSolicitud.save();
@@ -221,7 +221,6 @@ const postSolicitud = async (req, res) => {
     res.status(500).json({ error: 'Error interno del servidor.' });
   }
 };
-
 
 
 
@@ -248,11 +247,6 @@ const getSolicitudesPorClienteId = async (req, res) => {
     });
   }
 };
-
-
-
-
-
 
 
 const deleteSolicitud = async (req, res) => {
@@ -282,8 +276,6 @@ const deleteSolicitud = async (req, res) => {
 
 
 
-
-
 module.exports = {
 
     getSolicitudes,
@@ -292,6 +284,4 @@ module.exports = {
     putServicioSolicitud,
     deleteSolicitud
 
-  };
-
-
+};
