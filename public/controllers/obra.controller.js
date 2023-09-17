@@ -65,7 +65,7 @@ const getObras = async (req, res) => {
             
                   return {
                     nombre_material: material.nombre_material,
-                    // cantidad: material.cantidad,
+                    cantidad: material.cantidad,
                     valor_unitario: material.valor_unitario,
                   };
                 } else {
@@ -111,26 +111,73 @@ const getObras = async (req, res) => {
 
 
 
+// const postObra = async (req, res) => {
+//   const { cotizacionId, nombre_servicio, correo_cliente, empleado_encargado, fecha_inicio, estado_servicio } = req.body;
+
+//   try {
+//     const cotizacion = await Cotizacion.findById(cotizacionId)
+//     // .populate('servicios.servicio');
+
+//     // if (!cotizacion) {
+//     //   return res.status(404).json({ error: 'La cotización no existe.' });
+//     // }
+
+//     const serviciosCotizacion = cotizacion.servicios.map((servicioCotizado) => ({
+//       // servicio: servicioCotizado.servicio,
+//       actividad: servicioCotizado.actividad,
+//       unidad: servicioCotizado.unidad,
+//       cantidad: servicioCotizado.cantidad,
+//       materialesSeleccionados: servicioCotizado.materialesSeleccionados,
+//     }));
+
+//     console.log(serviciosCotizacion)
+
+//     const obra = new Obra({
+//       cotizacion: cotizacionId,
+//       servicios: serviciosCotizacion,
+//       correo_cliente,
+//       empleado_encargado,
+//       fecha_inicio,
+//       estado_servicio,
+//     });
+
+//     await obra.save();
+
+//     res.json({
+//       ok: 200,
+//       msg: 'Obra creada correctamente',
+//     });
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ error: 'Error interno del servidor.' });
+//   }
+// };
+
+
+
+
+
+
 const postObra = async (req, res) => {
-  const { cotizacionId, nombre_servicio, correo_cliente, empleado_encargado, fecha_inicio, estado_servicio } = req.body;
+  const { cotizacionId, correo_cliente, empleado_encargado, fecha_inicio, estado_servicio } = req.body;
 
   try {
-    const cotizacion = await Cotizacion.findById(cotizacionId)
-    // .populate('servicios.servicio');
+    const cotizacion = await Cotizacion.findById(cotizacionId);
 
-    // if (!cotizacion) {
-    //   return res.status(404).json({ error: 'La cotización no existe.' });
-    // }
+    if (!cotizacion) {
+      return res.status(404).json({ error: 'La cotización no existe.' });
+    }
 
-    const serviciosCotizacion = cotizacion.servicios.map((servicioCotizado) => ({
-      // servicio: servicioCotizado.servicio,
-      actividad: servicioCotizado.actividad,
-      unidad: servicioCotizado.unidad,
-      cantidad: servicioCotizado.cantidad,
-      materialesSeleccionados: servicioCotizado.materialesSeleccionados,
-    }));
+    const serviciosCotizacion = [];
 
-    console.log(serviciosCotizacion)
+    cotizacion.servicios.forEach((servicioCotizado) => {
+      serviciosCotizacion.push({
+        actividad: servicioCotizado.actividad,
+        unidad: servicioCotizado.unidad,
+        cantidad: servicioCotizado.cantidad,
+        materialesSeleccionados: servicioCotizado.materialesSeleccionados,
+      });
+    });
 
     const obra = new Obra({
       cotizacion: cotizacionId,
@@ -152,6 +199,12 @@ const postObra = async (req, res) => {
     res.status(500).json({ error: 'Error interno del servidor.' });
   }
 };
+
+
+
+
+
+
 
 
 const putObra = async (req, res) => {

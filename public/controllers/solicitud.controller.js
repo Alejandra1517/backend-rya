@@ -226,7 +226,7 @@ const postSolicitud = async (req, res) => {
 
 //Para la vista de cliente 
 const getSolicitudesPorClienteId = async (req, res) => {
-  const clienteId = req.params.clienteId;
+  const clienteId = req.params.id;
 
   console.log("Cliente id", clienteId)
 

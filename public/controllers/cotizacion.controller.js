@@ -98,8 +98,6 @@ const getCotizaciones = async (req, res) => {
 
         return {
           ...cotizacion._doc,
-          descripcion_solicitud: cotizacion.solicitud?.descripcion || '',
-          cantidad_solicitud: cotizacion.solicitud?.cantidad || 0,
           cliente_nombre: cliente?.nombre_cliente || '',
           cliente_correo: cliente?.correo || '',
           servicios: serviciosFormateados,
@@ -126,7 +124,7 @@ const getCotizaciones = async (req, res) => {
 
 
 const getCotizacionById = async (req, res) => {
-  const cotizacionId = req.params._id;
+  const cotizacionId = req.params.id;
 
   try {
     const cotizacion = await Cotizacion.findById(cotizacionId).populate({
@@ -136,6 +134,7 @@ const getCotizacionById = async (req, res) => {
         model: 'cliente', // Reemplaza 'Cliente' por el nombre correcto del modelo de cliente
       },
     });
+
 
     if (!cotizacion) {
       return res.status(404).json({ error: 'La cotización no existe.' });
@@ -175,13 +174,14 @@ const getCotizacionById = async (req, res) => {
       })
     );
 
+    const cliente = await Cliente.findById(cotizacion.clienteId);
 
     const cotizacionConNombre = {
       ...cotizacion._doc,
-      correo_cliente: cotizacion.solicitud?.clienteId?.correo || cotizacionId.correo_cliente,
-      nombre_cliente: cotizacion.solicitud?.clienteId?.nombre_cliente || cotizacionId.nombre_cliente,
-      descripcion_solicitud: cotizacion.solicitud?.descripcion || '',
-      cantidad_solicitud: cotizacion.solicitud?.cantidad || 0,
+      cliente_nombre: cliente?.nombre_cliente || '',
+      cliente_correo: cliente?.correo || '',
+      // correo_cliente: cotizacion.solicitud?.clienteId?.correo || cotizacionId.correo_cliente,
+      // nombre_cliente: cotizacion.solicitud?.clienteId?.nombre_cliente || cotizacionId.nombre_cliente,
       servicios: serviciosFormateados,
       // subtotal: cotizacion.solicitud?.servicios?.subtotal || 0
 
@@ -252,7 +252,7 @@ const putCotizacion = async (req, res) => {
 //Para la vista de cliente 
 const getCotizacionesPorClienteId = async (req, res) => {
 
-  const clienteId = req.params.clienteId;
+  const clienteId = req.params.id;
 
   console.log("Cliente id cotización", clienteId)
 
@@ -288,9 +288,11 @@ const getCotizacionesPorClienteId = async (req, res) => {
 
 
 const postCotizacion = async (req, res) => {
-  const { solicitud, servicios, fecha_inicio, fecha_vencimiento, representante, clienteId, subtotal, total_servicios, total_materiales, total_cotizacion, estado_cotizacion } = req.body;
+  const { solicitud, servicios, fecha_inicio, fecha_vencimiento, clienteId, representante, total_servicios, total_materiales, total_cotizacion, estado_cotizacion } = req.body;
 
  
+  console.log(clienteId)
+
   const [day, month, year] = fecha_vencimiento.split('/');
   const fechaVencimientoFormatted = new Date(`${year}-${month}-${day}`);
 
@@ -316,9 +318,8 @@ const postCotizacion = async (req, res) => {
           unidad: servicio.unidad,
           cantidad: servicio.cantidad,
           valor_unitario: servicio.valor_unitario,
-          valor_total: servicio.valor_total,
+          subtotal: servicio.subtotal,
           materialesSeleccionados: servicio.materialesSeleccionados, // Asociar los materiales seleccionados al servicio de la cotización
-        
         };
 
 
@@ -354,6 +355,57 @@ const postCotizacion = async (req, res) => {
     res.status(500).json({ error: 'Error interno del servidor.' });
   }
 };
+
+
+
+
+
+const postPrecios = async (req, res) => {
+  const { servicios, materiales } = req.body;
+
+  try {
+
+    let totalServicios = 0;
+
+    servicios.forEach((servicio) => {
+     
+      totalServicios += servicio.cantidad * servicio.valor_unitario;
+
+    });
+
+    let totalMateriales = 0;
+
+    materiales.forEach((material) => {
+      totalMateriales += material.cantidad * material.valor_unitario;
+    });
+
+    const totalCotizacion = totalServicios + totalMateriales;
+
+    res.json({
+      totalServicios,
+      totalMateriales,
+      totalCotizacion,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      ok: 500,
+      msg: 'Ocurrió un error al calcular los precios.',
+    });
+  }
+};
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -450,6 +502,7 @@ module.exports = {
     getCotizaciones,
     getCotizacionById,
     getCotizacionesPorClienteId,
+    postPrecios,
     postCotizacion,
     postEmail,
     putCotizacion,
