@@ -91,6 +91,8 @@ const getCotizaciones = async (req, res) => {
           unidad: servicio.unidad,
           cantidad: servicio.cantidad,
           valor_unitario: servicio.valor_unitario,
+          subtotal: servicio.subtotal,
+          materialesSeleccionados: servicio.materialesSeleccionados,
         }));
 
         // Buscar el cliente directamente usando el clienteId de la cotización
@@ -149,12 +151,12 @@ const getCotizacionById = async (req, res) => {
           return {
             
             // servicio: {
-              materialesSeleccionados: servicio.materialesSeleccionados,
               actividad: servicio.actividad,
               unidad: servicio.unidad,
               cantidad: servicio.cantidad,
               valor_unitario: servicio.valor_unitario,
-              valor_total: servicio.valor_total
+              subtotal: servicio.subtotal,
+              materialesSeleccionados: servicio.materialesSeleccionados
           // }
 
 
@@ -287,62 +289,54 @@ const getCotizacionesPorClienteId = async (req, res) => {
 };
 
 
+
+
+
 const postCotizacion = async (req, res) => {
   const { solicitud, servicios, fecha_inicio, fecha_vencimiento, clienteId, representante, total_servicios, total_materiales, total_cotizacion, estado_cotizacion } = req.body;
 
- 
   console.log(clienteId)
 
   const [day, month, year] = fecha_vencimiento.split('/');
   const fechaVencimientoFormatted = new Date(`${year}-${month}-${day}`);
 
-
   try {
-
-    // Convierte la cadena de fecha en el formato deseado: "día/mes/año"
-    // const [day, month, year] = fechaVencimientoString.split('/');
-    // const fechaVencimientoFormatted = `${day}/${month}/${year}`;
-
-
     // Almacena los servicios de la cotización
     const serviciosCotizacion = [];
 
     // Iterar sobre los servicios recibidos en el cuerpo de la solicitud
     for (const servicio of servicios) {
-   
-        // Crea una copia del servicio de la solicitud y agrega la cantidad y descripción de la cotización
-        const servicioCotizacion = {
+      // Crea una copia del servicio de la solicitud y agrega la cantidad y descripción de la cotización
+      const servicioCotizacion = {
+        tipo: servicio.tipo, // Establecer el tipo para los servicios de solicitud
+        actividad: servicio.actividad,
+        unidad: servicio.unidad,
+        cantidad: servicio.cantidad,
+        valor_unitario: servicio.valor_unitario,
+        subtotal: servicio.subtotal,
+        materialesSeleccionados: servicio.materialesSeleccionados.map((materialSeleccionado) => ({
+          material: materialSeleccionado.material,
+          cantidad: materialSeleccionado.cantidad, // Agrega la cantidad de materiales
+          valor_unitario: materialSeleccionado.valor_unitario
+        })),
+      };
 
-          tipo: servicio.tipo, // Establecer el tipo para los servicios de solicitud
-          actividad: servicio.actividad,
-          unidad: servicio.unidad,
-          cantidad: servicio.cantidad,
-          valor_unitario: servicio.valor_unitario,
-          subtotal: servicio.subtotal,
-          materialesSeleccionados: servicio.materialesSeleccionados, // Asociar los materiales seleccionados al servicio de la cotización
-        };
-
-
-        serviciosCotizacion.push(servicioCotizacion);
-
+      serviciosCotizacion.push(servicioCotizacion);
     }
-
 
     // Crea la cotización con los servicios correspondientes
     const saveCotizacion = new Cotizacion({
       solicitud,
-      servicios: serviciosCotizacion, 
+      servicios: serviciosCotizacion,
       fecha_inicio,
-      fecha_vencimiento: new Date(fechaVencimientoFormatted), // Almacena la fecha formateada como un objeto de fecha
-      representante,  
+      fecha_vencimiento: new Date(fechaVencimientoFormatted),
+      representante,
       clienteId,
-      subtotal,
       total_servicios,
       total_materiales,
       total_cotizacion,
-      estado_cotizacion
+      estado_cotizacion,
     });
-
 
     await saveCotizacion.save();
 
@@ -355,6 +349,70 @@ const postCotizacion = async (req, res) => {
     res.status(500).json({ error: 'Error interno del servidor.' });
   }
 };
+
+
+// const postCotizacion = async (req, res) => {
+//   const { solicitud, servicios, fecha_inicio, fecha_vencimiento, clienteId, representante, total_servicios, total_materiales, total_cotizacion, estado_cotizacion } = req.body;
+
+ 
+//   console.log(clienteId)
+
+//   const [day, month, year] = fecha_vencimiento.split('/');
+//   const fechaVencimientoFormatted = new Date(`${year}-${month}-${day}`);
+
+
+//   try {
+
+//     // Almacena los servicios de la cotización
+//     const serviciosCotizacion = [];
+
+//     // Iterar sobre los servicios recibidos en el cuerpo de la solicitud
+//     for (const servicio of servicios) {
+   
+//         // Crea una copia del servicio de la solicitud y agrega la cantidad y descripción de la cotización
+//         const servicioCotizacion = {
+
+//           tipo: servicio.tipo, // Establecer el tipo para los servicios de solicitud
+//           actividad: servicio.actividad,
+//           unidad: servicio.unidad,
+//           cantidad: servicio.cantidad,
+//           valor_unitario: servicio.valor_unitario,
+//           subtotal: servicio.subtotal,
+//           materialesSeleccionados: servicio.materialesSeleccionados, // Asociar los materiales seleccionados al servicio de la cotización
+//         };
+
+
+//         serviciosCotizacion.push(servicioCotizacion);
+
+//     }
+
+
+//     // Crea la cotización con los servicios correspondientes
+//     const saveCotizacion = new Cotizacion({
+//       solicitud,
+//       servicios: serviciosCotizacion, 
+//       fecha_inicio,
+//       fecha_vencimiento: new Date(fechaVencimientoFormatted), // Almacena la fecha formateada como un objeto de fecha
+//       representante,  
+//       clienteId,
+//       total_servicios,
+//       total_materiales,
+//       total_cotizacion,
+//       estado_cotizacion
+//     });
+
+
+//     await saveCotizacion.save();
+
+//     res.json({
+//       ok: 200,
+//       msg: 'Cotizacion guardada correctamente',
+//     });
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ error: 'Error interno del servidor.' });
+//   }
+// };
 
 
 

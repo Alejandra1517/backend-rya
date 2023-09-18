@@ -43,6 +43,9 @@ const Empleado = require('../models/empleado.model')
 
 
 
+
+
+
 const getObras = async (req, res) => {
   try {
     const obras = await Obra.find();
@@ -55,32 +58,29 @@ const getObras = async (req, res) => {
           obra.servicios.map(async (servicio) => {
             const materialIds = servicio.materialesSeleccionados;
 
-            // console.log("Materiales seleccionados: ", materialIds)
+            console.log("materialIds: ", materialIds)
 
             const materiales = await Promise.all(
               materialIds.map(async (materialId) => {
-                const material = await Material.findById(materialId);
-            
+                const material = await Material.findById(materialId._id); // Accede al ID del material desde materialId
+
                 if (material) {
-            
                   return {
                     nombre_material: material.nombre_material,
-                    cantidad: material.cantidad,
-                    valor_unitario: material.valor_unitario,
+                    cantidad: materialId.cantidad, // Usa la cantidad del materialId
+                    valor_unitario: materialId.valor_unitario,
                   };
                 } else {
-                  console.log("Material no encontrado para ID:", materialId);
+                  console.log("Material no encontrado para ID:", materialId._id);
                   return null;
                 }
               })
             );
-            
+
             return {
-              // servicio: servicio.servicio,
               actividad: servicio.actividad,
               unidad: servicio.unidad,
               cantidad: servicio.cantidad,
-              // descripcion: servicio.descripcion,
               materiales: materiales,
               _id: servicio._id,
             };
@@ -107,6 +107,81 @@ const getObras = async (req, res) => {
     res.status(500).json({ error: 'Error al obtener las obras' });
   }
 };
+
+
+
+
+
+
+// const getObras = async (req, res) => {
+//   try {
+//     const obras = await Obra.find();
+
+//     const obrasConDatos = await Promise.all(
+//       obras.map(async (obra) => {
+//         const empleadoEncargado = await Empleado.findById(obra.empleado_encargado);
+
+//         const serviciosConDetalles = await Promise.all(
+//           obra.servicios.map(async (servicio) => {
+//             const materialIds = servicio.materialesSeleccionados;
+
+//             // console.log("Materiales seleccionados: ", materialIds)
+
+//             // const materiales = await Promise.all(
+//             //   materialIds.map(async (materialId) => {
+//             //     const material = await Material.findById(materialId);
+            
+//             //     if (material) {
+            
+//             //       return {
+//             //         nombre_material: material.nombre_material,
+//             //         cantidad: material.cantidad,
+//             //         valor_unitario: material.valor_unitario,
+//             //       };
+//             //     } else {
+//             //       console.log("Material no encontrado para ID:", materialId);
+//             //       return null;
+//             //     }
+//             //   })
+//             // );
+            
+//             return {
+//               // servicio: servicio.servicio,
+//               actividad: servicio.actividad,
+//               unidad: servicio.unidad,
+//               cantidad: servicio.cantidad,
+//               // descripcion: servicio.descripcion,
+//               // materiales: materiales,
+//               materialesSeleccionados: servicio.materialesSeleccionados.map((materialSeleccionado) => ({
+//                 material: materialSeleccionado._id,
+//                 cantidad: materialSeleccionado.cantidad, // Agrega la cantidad de materiales
+//                 valor_unitario: materialSeleccionado.valor_unitario
+//               })),
+//               _id: servicio._id,
+//             };
+//           })
+//         );
+
+//         return {
+//           _id: obra._id,
+//           cotizacion: obra.cotizacion,
+//           servicios: serviciosConDetalles,
+//           correo_cliente: obra.correo_cliente,
+//           empleado_encargado: empleadoEncargado,
+//           fecha_inicio: new Date(),
+//           estado_servicio: obra.estado_servicio,
+//         };
+//       })
+//     );
+
+//     res.json({
+//       obras: obrasConDatos,
+//     });
+//   } catch (error) {
+//     console.error('Error al obtener las obras', error);
+//     res.status(500).json({ error: 'Error al obtener las obras' });
+//   }
+// };
 
 
 
@@ -175,7 +250,12 @@ const postObra = async (req, res) => {
         actividad: servicioCotizado.actividad,
         unidad: servicioCotizado.unidad,
         cantidad: servicioCotizado.cantidad,
-        materialesSeleccionados: servicioCotizado.materialesSeleccionados,
+        materialesSeleccionados: servicioCotizado.materialesSeleccionados.map((materialSeleccionado) => ({
+          material: materialSeleccionado.material,
+          cantidad: materialSeleccionado.cantidad, // Agrega la cantidad de materiales
+          valor_unitario: materialSeleccionado.valor_unitario
+        }))
+        // materialesSeleccionados: servicioCotizado.materialesSeleccionados,
       });
     });
 

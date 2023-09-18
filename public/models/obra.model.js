@@ -10,7 +10,12 @@ const ObraModel = new Schema({
       actividad: { type: String },
       unidad: { type: String },
       cantidad: { type: Number, default: 1 },
-      materialesSeleccionados: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Material' }],
+      // materialesSeleccionados: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Material' }],
+      materialesSeleccionados: [{
+        material: { type: mongoose.Schema.Types.ObjectId, ref: 'Material' },
+        cantidad: { type: Number }, // Cantidad de materiales asociados a este servicio
+        valor_unitario: { type: Number } 
+    }]
     },
   ],
   correo_cliente: { type: String },
