@@ -72,6 +72,32 @@ const putServicioSolicitud = async (req, res ) => {
 };
 
 
+const putEstadoSolicitud = async (req, res) => {
+  try {
+    const id = req.params.id;
+
+    const { estado_solicitud } = req.body;
+ 
+    await Solicitud.findByIdAndUpdate(id, {
+
+      estado_solicitud: estado_solicitud
+
+
+    });
+
+
+    res.json({
+      ok: 200,
+      msg: "Estado cotizacion editado correctamente",
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error interno del servidor.' });
+  }
+};
+
+
+
 // const postSolicitud = async (req, res) => {
 //   try {
 //     const { 
@@ -282,6 +308,7 @@ module.exports = {
     getSolicitudesPorClienteId,
     postSolicitud,
     putServicioSolicitud,
+    putEstadoSolicitud,
     deleteSolicitud
 
 };
