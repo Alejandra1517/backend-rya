@@ -156,7 +156,7 @@ const getCotizacionById = async (req, res) => {
               cantidad: servicio.cantidad,
               valor_unitario: servicio.valor_unitario,
               subtotal: servicio.subtotal,
-              materialesSeleccionados: servicio.materialesSeleccionados
+              materiales: servicio.materialesSeleccionados
           // }
 
 
@@ -204,7 +204,10 @@ const getCotizacionById = async (req, res) => {
 const putCotizacion = async (req, res) => {
   try {
     const id = req.params.id;
-    const { servicios, fecha_vencimiento, total_servicio, estado_cotizacion } = req.body;
+
+    const { servicios, fecha_vencimiento, representante, total_servicios, total_materiales, total_cotizacion, estado_cotizacion } = req.body;
+ 
+
 
 
     const [day, month, year] = fecha_vencimiento.split('/');
@@ -223,7 +226,13 @@ const putCotizacion = async (req, res) => {
         cantidad: servicio.cantidad,
         valor_unitario: servicio.valor_unitario,
         subtotal: servicio.subtotal,
-        materialesSeleccionados: servicio.materialesSeleccionados
+        materialesSeleccionados: servicio.materialesSeleccionados.map((materialSeleccionado) => ({
+          material: materialSeleccionado._id,
+          cantidad: materialSeleccionado.cantidad, // Agrega la cantidad de materiales
+          nombre_material: materialSeleccionado.nombre_material,
+          valor_unitario: materialSeleccionado.valor_unitario,
+          subtotal: materialSeleccionado.subtotal
+        })),
       };
       
       
@@ -234,15 +243,46 @@ const putCotizacion = async (req, res) => {
     
     // Actualiza la cotización con los servicios correspondientes y otros campos
     await Cotizacion.findByIdAndUpdate(id, {
+
       servicios: serviciosCotizacion,
       fecha_vencimiento: new Date(fechaVencimientoFormatted), // Almacena la fecha formateada como un objeto de fecha
-      total_servicio,
+      representante: representante,
+      total_servicios: total_servicios,
+      total_materiales: total_materiales,
+      total_cotizacion: total_cotizacion,
       estado_cotizacion
     });
+
 
     res.json({
       ok: 200,
       msg: "Cotizacion editada correctamente",
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error interno del servidor.' });
+  }
+};
+
+
+
+const putEstadoCotizacion = async (req, res) => {
+  try {
+    const id = req.params.id;
+
+    const { estado_cotizacion } = req.body;
+ 
+    await Cotizacion.findByIdAndUpdate(id, {
+
+      estado_cotizacion: estado_cotizacion
+
+
+    });
+
+
+    res.json({
+      ok: 200,
+      msg: "Estado cotizacion editado correctamente",
     });
   } catch (error) {
     console.error(error);
@@ -315,9 +355,11 @@ const postCotizacion = async (req, res) => {
         valor_unitario: servicio.valor_unitario,
         subtotal: servicio.subtotal,
         materialesSeleccionados: servicio.materialesSeleccionados.map((materialSeleccionado) => ({
-          material: materialSeleccionado.material,
+          material: materialSeleccionado._id,
           cantidad: materialSeleccionado.cantidad, // Agrega la cantidad de materiales
-          valor_unitario: materialSeleccionado.valor_unitario
+          nombre_material: materialSeleccionado.nombre_material,
+          valor_unitario: materialSeleccionado.valor_unitario,
+          subtotal: materialSeleccionado.subtotal
         })),
       };
 
@@ -529,14 +571,6 @@ const postEmail = async (req, res) => {
 
 
 
-
-
-
-
-
-
-
-
 const deleteCotizacion = async (req, res) => {
 
     const  id = req.params.id
@@ -564,6 +598,7 @@ module.exports = {
     postCotizacion,
     postEmail,
     putCotizacion,
+    putEstadoCotizacion,
     deleteCotizacion
 
 }

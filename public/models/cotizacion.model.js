@@ -52,7 +52,10 @@ const CotizacionModel = new Schema({
         materialesSeleccionados: [{
             material: { type: mongoose.Schema.Types.ObjectId, ref: 'Material' },
             cantidad: { type: Number }, // Cantidad de materiales asociados a este servicio
-            valor_unitario: { type: Number } 
+            valor_unitario: { type: Number },
+            nombre_material: { type: String },
+            subtotal: { type: String } 
+            
         }]
     }],
     nombre_cliente: { type: String },
