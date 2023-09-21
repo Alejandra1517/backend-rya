@@ -252,15 +252,17 @@ const postSolicitud = async (req, res) => {
 
 //Para la vista de cliente 
 const getSolicitudesPorClienteId = async (req, res) => {
-  const clienteId = req.params.id;
+  const userId = req.params.id;
 
-  console.log("Cliente id", clienteId)
+  const user = await User.findById(userId);
+
+  const correo = user.correo; 
+
 
   try {
-    // Obtener las solicitudes asociadas al ID del cliente y poblar los datos del cliente en ellas
-    const solicitudes = await Solicitud.find({
-      clienteId: clienteId,
-    }).populate('clienteId', 'nombre_cliente'); // 'nombre_cliente' es el campo a seleccionar del cliente
+    // Obtener las solicitudes asociadas al ID del cliente y poblar los datos del cliente (incluyendo el correo electrónico)
+    const solicitudes = await Solicitud.find({ correo })
+      .populate('correo', 'nombre_cliente correo'); // 'nombre_cliente' y 'correo' son los campos a seleccionar del cliente
 
     res.json({
       solicitudes,
@@ -273,6 +275,7 @@ const getSolicitudesPorClienteId = async (req, res) => {
     });
   }
 };
+
 
 
 const deleteSolicitud = async (req, res) => {

@@ -4,6 +4,8 @@ const Solicitud = require('../models/solicitud.model')
 
 const Cliente = require('../models/cliente.model')
 
+const User = require('../models/users.model')
+
 const Material = require('../models/material.model')
 
 const { format } = require('date-fns'); // Importa la función de formato de date-fns
@@ -100,8 +102,8 @@ const getCotizaciones = async (req, res) => {
 
         return {
           ...cotizacion._doc,
-          cliente_nombre: cliente?.nombre_cliente || '',
-          cliente_correo: cliente?.correo || '',
+          cliente_nombre: cotizacion.cliente_nombre || '',
+          cliente_correo: cotizacion.cliente_correo || '',
           servicios: serviciosFormateados,
           total_servicios: cotizacion.total_servicios || 0,
           total_materiales: cotizacion.total_materiales || 0,
@@ -123,6 +125,8 @@ const getCotizaciones = async (req, res) => {
 };
 
 
+
+//modificar la cotizacion
 
 
 const getCotizacionById = async (req, res) => {
@@ -198,6 +202,8 @@ const getCotizacionById = async (req, res) => {
     });
   }
 };
+
+
 
 
 
@@ -294,30 +300,22 @@ const putEstadoCotizacion = async (req, res) => {
 //Para la vista de cliente 
 const getCotizacionesPorClienteId = async (req, res) => {
 
-  const clienteId = req.params.id;
+  const userId = req.params.id;
 
-  console.log("Cliente id cotización", clienteId)
+  const user = await User.findById(userId);
+
+  const cliente_correo = user.correo; 
 
   try {
     // Obtener las cotizaciones asociadas al ID del cliente y poblar los datos del cliente en ellas
-    const cotizaciones = await Cotizacion.find({
-      'solicitud.clienteId': "64ff3021d94bab488bb40b7c",
-    }).populate({
-      path: 'solicitud.clienteId',
-      model: 'Cliente', // Reemplaza 'Cliente' por el nombre correcto del modelo de cliente
-      select: 'nombre_cliente', // Selecciona solo el campo 'nombre_cliente' del cliente
-    });
+    const cotizaciones = await Cotizacion.find({ cliente_correo })
+    .populate('cliente_correo', 'correo'); 
 
-    // Extraer solo el nombre del cliente de las cotizaciones
-    const nombresClientes = cotizaciones.map((cotizacion) => cotizacion._id);
 
-    // const nombresClientes = cotizaciones.map((cotizacion) => cotizacion.solicitud);
-
-    console.log("Nombres clientes", nombresClientes)
-
+    console.log("Cotizaciones:  ", cotizaciones)
 
     res.json({
-      nombresClientes,
+      cotizaciones,
     });
   } catch (error) {
     console.error(error);
@@ -327,7 +325,6 @@ const getCotizacionesPorClienteId = async (req, res) => {
     });
   }
 };
-
 
 
 
@@ -366,6 +363,8 @@ const postCotizacion = async (req, res) => {
       serviciosCotizacion.push(servicioCotizacion);
     }
 
+    const cliente = await Cliente.findById(clienteId);
+
     // Crea la cotización con los servicios correspondientes
     const saveCotizacion = new Cotizacion({
       solicitud,
@@ -374,11 +373,16 @@ const postCotizacion = async (req, res) => {
       fecha_vencimiento: new Date(fechaVencimientoFormatted),
       representante,
       clienteId,
+      // usuarioId,
+      cliente_correo: cliente.correo,
+      cliente_nombre: cliente.nombre_cliente,
       total_servicios,
       total_materiales,
       total_cotizacion,
       estado_cotizacion,
     });
+
+    console.log("cotizacion", saveCotizacion)
 
     await saveCotizacion.save();
 

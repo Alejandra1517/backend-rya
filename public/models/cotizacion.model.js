@@ -41,7 +41,8 @@ const { Schema, model } = require('mongoose');
 
 const CotizacionModel = new Schema({
     solicitud: { type: mongoose.Schema.Types.ObjectId, ref: 'Solicitud' },
-    clienteId: { type: mongoose.Schema.Types.ObjectId, ref: 'Cliente' },
+    // clienteId: { type: mongoose.Schema.Types.ObjectId, ref: 'Cliente' },
+    usuarioId: { type: mongoose.Schema.Types.ObjectId, ref: 'Usuario' },
     servicios: [{
         tipo: { type: String, enum: ['solicitud', 'cotizacion'], required: true }, // Tipo de entidad: 'solicitud' o 'cotizacion'
         actividad: { type: String },
@@ -58,7 +59,8 @@ const CotizacionModel = new Schema({
             
         }]
     }],
-    nombre_cliente: { type: String },
+    cliente_correo: { type: String },
+    cliente_nombre: { type: String },
     fecha_inicio: { type: Date },
     fecha_vencimiento: { type: Date },
     representante: { type: String },
