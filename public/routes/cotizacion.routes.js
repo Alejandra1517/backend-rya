@@ -1,6 +1,6 @@
 const { Router } = require('express')
 
-const { getMateriales, getCotizacionById, getCotizacionesPorClienteId, getCotizaciones, postCotizacion, postEmail, putCotizacion, putEstadoCotizacion, deleteCotizacion } = require('../controllers/cotizacion.controller')
+const { getMateriales, getCotizacionById, getCotizacionesPorClienteId, getCotizaciones, postCotizacion, postEmail, putCotizacion, putEstadoCotizacion, putAnulacionCotizacion, deleteCotizacion } = require('../controllers/cotizacion.controller')
 
 
 const route = Router()
@@ -19,6 +19,8 @@ route.post('/postCotizacion', postCotizacion)
 route.post('/postEmail', postEmail)
 
 route.put('/putCotizacion/:id', putCotizacion)
+
+route.put('/putAnulacionCotizacion/:id', putAnulacionCotizacion)
 
 route.put('/putEstadoCotizacion/:id', putEstadoCotizacion)
 

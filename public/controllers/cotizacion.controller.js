@@ -97,8 +97,7 @@ const getCotizaciones = async (req, res) => {
           materialesSeleccionados: servicio.materialesSeleccionados,
         }));
 
-        // Buscar el cliente directamente usando el clienteId de la cotización
-        const cliente = await Cliente.findById(cotizacion.clienteId);
+        console.log("Cotizaciones", cotizacion)
 
         return {
           ...cotizacion._doc,
@@ -108,6 +107,11 @@ const getCotizaciones = async (req, res) => {
           total_servicios: cotizacion.total_servicios || 0,
           total_materiales: cotizacion.total_materiales || 0,
           total_cotizacion: cotizacion.total_cotizacion || 0,
+          estado_cotizacionAdmin: cotizacion.estado_cotizacionAdmin || 0,
+          estado_cotizacionCustomer: cotizacion.estado_cotizacionCustomer || 0,
+          anulada: cotizacion.anulada,
+          mensajeAnulacion: cotizacion.mensajeAnulacion,
+          mensajeCancelacion: cotizacion.mensajeCancelacion
         };
       })
     );
@@ -180,16 +184,11 @@ const getCotizacionById = async (req, res) => {
       })
     );
 
-    const cliente = await Cliente.findById(cotizacion.clienteId);
-
     const cotizacionConNombre = {
       ...cotizacion._doc,
-      cliente_nombre: cliente?.nombre_cliente || '',
-      cliente_correo: cliente?.correo || '',
-      // correo_cliente: cotizacion.solicitud?.clienteId?.correo || cotizacionId.correo_cliente,
-      // nombre_cliente: cotizacion.solicitud?.clienteId?.nombre_cliente || cotizacionId.nombre_cliente,
-      servicios: serviciosFormateados,
-      // subtotal: cotizacion.solicitud?.servicios?.subtotal || 0
+      cliente_nombre: cotizacion.cliente_nombre || '',
+      cliente_correo: cotizacion.cliente_correo || '',
+      servicios: serviciosFormateados
 
     };
 
@@ -206,12 +205,11 @@ const getCotizacionById = async (req, res) => {
 
 
 
-
 const putCotizacion = async (req, res) => {
   try {
     const id = req.params.id;
 
-    const { servicios, fecha_vencimiento, representante, total_servicios, total_materiales, total_cotizacion, estado_cotizacion } = req.body;
+    const { servicios, fecha_vencimiento, representante, total_servicios, total_materiales, total_cotizacion, estado_cotizacionAdmin, estado_cotizacionCustomer } = req.body;
  
 
 
@@ -256,7 +254,8 @@ const putCotizacion = async (req, res) => {
       total_servicios: total_servicios,
       total_materiales: total_materiales,
       total_cotizacion: total_cotizacion,
-      estado_cotizacion
+      estado_cotizacionAdmin: estado_cotizacionAdmin,
+      estado_cotizacionCustomer: estado_cotizacionCustomer
     });
 
 
@@ -276,11 +275,12 @@ const putEstadoCotizacion = async (req, res) => {
   try {
     const id = req.params.id;
 
-    const { estado_cotizacion } = req.body;
+    const { estado_cotizacionAdmin, estado_cotizacionCustomer } = req.body;
  
     await Cotizacion.findByIdAndUpdate(id, {
 
-      estado_cotizacion: estado_cotizacion
+      estado_cotizacionAdmin: estado_cotizacionAdmin,
+      estado_cotizacionCustomer: estado_cotizacionCustomer
 
 
     });
@@ -297,7 +297,67 @@ const putEstadoCotizacion = async (req, res) => {
 };
 
 
+
+
+const putAnulacionCotizacion = async (req, res) => {
+  try {
+    const id = req.params.id;
+
+    const { anulada } = req.body;
+
+
+    console.log("Anulada: ", anulada)
+    console.log("id: ", id)
+ 
+    await Cotizacion.findByIdAndUpdate(id, {
+
+      anulada: anulada,
+
+    });
+
+
+    res.json({
+      ok: 200,
+      msg: "Cotizacion anulada correctamente",
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error interno del servidor.' });
+  }
+};
+
+
+// const putEstadoCotizacionCustomer = async (req, res) => {
+//   try {
+//     const id = req.params.id;
+
+//     const { estado_cotizacion } = req.body;
+
+//     console.log(estado_cotizacion)
+//     console.log(id)
+ 
+//     await Cotizacion.findByIdAndUpdate(id, {
+
+//       estado_cotizacionAdmin: estado_cotizacion
+
+
+//     });
+
+
+//     res.json({
+//       ok: 200,
+//       msg: "Estado cotizacion editado correctamente",
+//     });
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ error: 'Error interno del servidor.' });
+//   }
+// };
+
 //Para la vista de cliente 
+
+
+
 const getCotizacionesPorClienteId = async (req, res) => {
 
   const userId = req.params.id;
@@ -330,7 +390,7 @@ const getCotizacionesPorClienteId = async (req, res) => {
 
 
 const postCotizacion = async (req, res) => {
-  const { solicitud, servicios, fecha_inicio, fecha_vencimiento, clienteId, representante, total_servicios, total_materiales, total_cotizacion, estado_cotizacion } = req.body;
+  const { solicitud, servicios, fecha_inicio, fecha_vencimiento, clienteId, representante, total_servicios, total_materiales, total_cotizacion, estado_cotizacionAdmin, estado_cotizacionCustomer, anulada, mensajeAnulacion, mensajeCancelacion } = req.body;
 
   console.log(clienteId)
 
@@ -353,12 +413,15 @@ const postCotizacion = async (req, res) => {
         subtotal: servicio.subtotal,
         materialesSeleccionados: servicio.materialesSeleccionados.map((materialSeleccionado) => ({
           material: materialSeleccionado._id,
+          unidad: materialSeleccionado.unidad, 
           cantidad: materialSeleccionado.cantidad, // Agrega la cantidad de materiales
           nombre_material: materialSeleccionado.nombre_material,
           valor_unitario: materialSeleccionado.valor_unitario,
           subtotal: materialSeleccionado.subtotal
         })),
       };
+
+      console.log("Servicios cotización: ", servicioCotizacion)
 
       serviciosCotizacion.push(servicioCotizacion);
     }
@@ -373,13 +436,16 @@ const postCotizacion = async (req, res) => {
       fecha_vencimiento: new Date(fechaVencimientoFormatted),
       representante,
       clienteId,
-      // usuarioId,
       cliente_correo: cliente.correo,
       cliente_nombre: cliente.nombre_cliente,
       total_servicios,
       total_materiales,
       total_cotizacion,
-      estado_cotizacion,
+      estado_cotizacionAdmin,
+      estado_cotizacionCustomer,
+      anulada,
+      mensajeAnulacion,
+      mensajeCancelacion
     });
 
     console.log("cotizacion", saveCotizacion)
@@ -395,70 +461,6 @@ const postCotizacion = async (req, res) => {
     res.status(500).json({ error: 'Error interno del servidor.' });
   }
 };
-
-
-// const postCotizacion = async (req, res) => {
-//   const { solicitud, servicios, fecha_inicio, fecha_vencimiento, clienteId, representante, total_servicios, total_materiales, total_cotizacion, estado_cotizacion } = req.body;
-
- 
-//   console.log(clienteId)
-
-//   const [day, month, year] = fecha_vencimiento.split('/');
-//   const fechaVencimientoFormatted = new Date(`${year}-${month}-${day}`);
-
-
-//   try {
-
-//     // Almacena los servicios de la cotización
-//     const serviciosCotizacion = [];
-
-//     // Iterar sobre los servicios recibidos en el cuerpo de la solicitud
-//     for (const servicio of servicios) {
-   
-//         // Crea una copia del servicio de la solicitud y agrega la cantidad y descripción de la cotización
-//         const servicioCotizacion = {
-
-//           tipo: servicio.tipo, // Establecer el tipo para los servicios de solicitud
-//           actividad: servicio.actividad,
-//           unidad: servicio.unidad,
-//           cantidad: servicio.cantidad,
-//           valor_unitario: servicio.valor_unitario,
-//           subtotal: servicio.subtotal,
-//           materialesSeleccionados: servicio.materialesSeleccionados, // Asociar los materiales seleccionados al servicio de la cotización
-//         };
-
-
-//         serviciosCotizacion.push(servicioCotizacion);
-
-//     }
-
-
-//     // Crea la cotización con los servicios correspondientes
-//     const saveCotizacion = new Cotizacion({
-//       solicitud,
-//       servicios: serviciosCotizacion, 
-//       fecha_inicio,
-//       fecha_vencimiento: new Date(fechaVencimientoFormatted), // Almacena la fecha formateada como un objeto de fecha
-//       representante,  
-//       clienteId,
-//       total_servicios,
-//       total_materiales,
-//       total_cotizacion,
-//       estado_cotizacion
-//     });
-
-
-//     await saveCotizacion.save();
-
-//     res.json({
-//       ok: 200,
-//       msg: 'Cotizacion guardada correctamente',
-//     });
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ error: 'Error interno del servidor.' });
-//   }
-// };
 
 
 
@@ -498,14 +500,6 @@ const postPrecios = async (req, res) => {
     });
   }
 };
-
-
-
-
-
-
-
-
 
 
 
@@ -603,6 +597,7 @@ module.exports = {
     postEmail,
     putCotizacion,
     putEstadoCotizacion,
+    putAnulacionCotizacion,
     deleteCotizacion
 
 }

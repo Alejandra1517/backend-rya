@@ -5,6 +5,7 @@ const Cotizacion = require('../models/cotizacion.model')
 
 const Solicitud = require('../models/solicitud.model')
 
+const User = require('../models/users.model')
 
 const Material = require('../models/material.model')
 
@@ -56,17 +57,16 @@ const getObras = async (req, res) => {
 
         const serviciosConDetalles = await Promise.all(
           obra.servicios.map(async (servicio) => {
-            const materialIds = servicio.materialesSeleccionados;
-
-            console.log("materialIds: ", materialIds)
+            const materialIds = servicio.materiales;
 
             const materiales = await Promise.all(
               materialIds.map(async (materialId) => {
-                const material = await Material.findById(materialId._id); // Accede al ID del material desde materialId
+                const material = await Material.findById(materialId.material); // Accede al ID del material desde materialId
 
                 if (material) {
                   return {
                     nombre_material: material.nombre_material,
+                    unidad: materialId.unidad, 
                     cantidad: materialId.cantidad, // Usa la cantidad del materialId
                     valor_unitario: materialId.valor_unitario,
                   };
@@ -91,10 +91,13 @@ const getObras = async (req, res) => {
           _id: obra._id,
           cotizacion: obra.cotizacion,
           servicios: serviciosConDetalles,
-          correo_cliente: obra.correo_cliente,
+          cliente_correo: obra.cliente_correo,
+          cliente_nombre: obra.cliente_nombre,
           empleado_encargado: empleadoEncargado,
           fecha_inicio: new Date(),
           estado_servicio: obra.estado_servicio,
+          anulada: obra.anulada,
+          mensajeAnulacion: obra.mensajeAnulacion,
         };
       })
     );
@@ -109,6 +112,115 @@ const getObras = async (req, res) => {
 };
 
 
+
+
+ 
+const getObrasPorClienteId = async (req, res) => {
+
+  const userId = req.params.id;
+
+  const user = await User.findById(userId);
+
+  const cliente_correo = user.correo; 
+
+  try {
+    // Obtener las cotizaciones asociadas al ID del cliente y poblar los datos del cliente en ellas
+    const obras = await Obra.find({ cliente_correo })
+    .populate('cliente_correo', 'correo'); 
+
+
+    const obrasConDatos = await Promise.all(
+      obras.map(async (obra) => {
+        const empleadoEncargado = await Empleado.findById(obra.empleado_encargado);
+
+        const serviciosConDetalles = await Promise.all(
+          obra.servicios.map(async (servicio) => {
+            const materialIds = servicio.materiales;
+
+            const materiales = await Promise.all(
+              materialIds.map(async (materialId) => {
+                const material = await Material.findById(materialId.material); // Accede al ID del material desde materialId
+
+                if (material) {
+                  return {
+                    nombre_material: material.nombre_material,
+                    unidad: materialId.unidad, 
+                    cantidad: materialId.cantidad, // Usa la cantidad del materialId
+                    valor_unitario: materialId.valor_unitario,
+                  };
+                } else {
+                  console.log("Material no encontrado para ID:", materialId._id);
+                  return null;
+                }
+              })
+            );
+
+            return {
+              actividad: servicio.actividad,
+              unidad: servicio.unidad,
+              cantidad: servicio.cantidad,
+              materiales: materiales,
+              _id: servicio._id,
+            };
+          })
+        );
+
+        return {
+          _id: obra._id,
+          cotizacion: obra.cotizacion,
+          servicios: serviciosConDetalles,
+          cliente_correo: obra.cliente_correo,
+          cliente_nombre: obra.cliente_nombre,
+          empleado_encargado: empleadoEncargado,
+          fecha_inicio: new Date(),
+          estado_servicio: obra.estado_servicio,
+          anulada: obra.anulada,
+          mensajeAnulacion: obra.mensajeAnulacion,
+        };
+      })
+    );
+
+
+    res.json({
+      obras: obrasConDatos,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      ok: 500,
+      msg: 'Ocurrió un error al obtener los nombres de los clientes asociados a las cotizaciones',
+    });
+  }
+};
+
+
+
+const putAnulacionObra = async (req, res) => {
+  try {
+    const id = req.params.id;
+
+    const { anulada } = req.body;
+
+
+    console.log("Anulada: ", anulada)
+    console.log("id: ", id)
+ 
+    await Obra.findByIdAndUpdate(id, {
+
+      anulada: anulada,
+
+    });
+
+
+    res.json({
+      ok: 200,
+      msg: "Obra anulada correctamente",
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error interno del servidor.' });
+  }
+};
 
 
 
@@ -234,7 +346,7 @@ const getObras = async (req, res) => {
 
 
 const postObra = async (req, res) => {
-  const { cotizacionId, correo_cliente, empleado_encargado, fecha_inicio, estado_servicio } = req.body;
+  const { cotizacionId, servicios, cliente_correo, cliente_nombre, empleado_encargado, fecha_inicio, estado_servicio, anulada, mensajeAnulacion } = req.body;
 
   try {
     const cotizacion = await Cotizacion.findById(cotizacionId);
@@ -245,13 +357,14 @@ const postObra = async (req, res) => {
 
     const serviciosCotizacion = [];
 
-    cotizacion.servicios.forEach((servicioCotizado) => {
+    servicios.forEach((servicio) => {
       serviciosCotizacion.push({
-        actividad: servicioCotizado.actividad,
-        unidad: servicioCotizado.unidad,
-        cantidad: servicioCotizado.cantidad,
-        materialesSeleccionados: servicioCotizado.materialesSeleccionados.map((materialSeleccionado) => ({
+        actividad: servicio.actividad,
+        unidad: servicio.unidad,
+        cantidad: servicio.cantidad,
+        materiales: servicio.materiales.map((materialSeleccionado) => ({
           material: materialSeleccionado.material,
+          unidad: materialSeleccionado.unidad,
           cantidad: materialSeleccionado.cantidad, // Agrega la cantidad de materiales
           valor_unitario: materialSeleccionado.valor_unitario
         }))
@@ -262,10 +375,13 @@ const postObra = async (req, res) => {
     const obra = new Obra({
       cotizacion: cotizacionId,
       servicios: serviciosCotizacion,
-      correo_cliente,
+      cliente_correo,
+      cliente_nombre,
       empleado_encargado,
       fecha_inicio,
       estado_servicio,
+      anulada,
+      mensajeAnulacion
     });
 
     await obra.save();
@@ -341,11 +457,20 @@ const deleteAllObras = async (req, res) => {
   
 
 
+
+ 
+
+
+
+
+
 module.exports = {
 
     getObras,
+    getObrasPorClienteId,
     postObra,
     putObra,
+    putAnulacionObra,
     deleteObra,
     deleteAllObras
 
