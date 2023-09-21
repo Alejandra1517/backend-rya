@@ -18,7 +18,8 @@ const SolicitudModel = new Schema({
   telefono: { type: String },
   imagen_referencia: { type: String },
   estado_solicitud: { type: Number },
-  fecha_envio: { type: Date }
+  fecha_envio: { type: Date },
+  cancelada: { type: Boolean }
 });
 
 SolicitudModel.set('toJSON', {

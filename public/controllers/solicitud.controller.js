@@ -23,6 +23,37 @@ const getSolicitudes = async (req, res) => {
 }
 
 
+
+
+const putCancelarSolicitud = async (req, res) => {
+  try {
+    const id = req.params.id;
+
+    const { anulada } = req.body;
+
+
+    console.log("Anulada: ", anulada)
+    console.log("id: ", id)
+ 
+    await Cotizacion.findByIdAndUpdate(id, {
+
+      anulada: anulada,
+
+    });
+
+
+    res.json({
+      ok: 200,
+      msg: "Solicitud cancelada correctamente",
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error interno del servidor.' });
+  }
+};
+
+
+
 const putServicioSolicitud = async (req, res ) => {
   try {
     const id = req.params.id;
@@ -308,6 +339,7 @@ const deleteSolicitud = async (req, res) => {
 module.exports = {
 
     getSolicitudes,
+    putCancelarSolicitud,
     getSolicitudesPorClienteId,
     postSolicitud,
     putServicioSolicitud,
