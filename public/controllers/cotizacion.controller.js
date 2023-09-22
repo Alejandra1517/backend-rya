@@ -97,7 +97,6 @@ const getCotizaciones = async (req, res) => {
           materialesSeleccionados: servicio.materialesSeleccionados,
         }));
 
-        console.log("Cotizaciones", cotizacion)
 
         return {
           ...cotizacion._doc,
@@ -306,8 +305,6 @@ const putAnulacionCotizacion = async (req, res) => {
     const { anulada } = req.body;
 
 
-    console.log("Anulada: ", anulada)
-    console.log("id: ", id)
  
     await Cotizacion.findByIdAndUpdate(id, {
 
@@ -371,9 +368,6 @@ const getCotizacionesPorClienteId = async (req, res) => {
     const cotizaciones = await Cotizacion.find({ cliente_correo })
     .populate('cliente_correo', 'correo'); 
 
-
-    console.log("Cotizaciones:  ", cotizaciones)
-
     res.json({
       cotizaciones,
     });
@@ -392,7 +386,6 @@ const getCotizacionesPorClienteId = async (req, res) => {
 const postCotizacion = async (req, res) => {
   const { solicitud, servicios, fecha_inicio, fecha_vencimiento, clienteId, representante, total_servicios, total_materiales, total_cotizacion, estado_cotizacionAdmin, estado_cotizacionCustomer, anulada, mensajeAnulacion, mensajeCancelacion } = req.body;
 
-  console.log(clienteId)
 
   const [day, month, year] = fecha_vencimiento.split('/');
   const fechaVencimientoFormatted = new Date(`${year}-${month}-${day}`);
@@ -421,7 +414,6 @@ const postCotizacion = async (req, res) => {
         })),
       };
 
-      console.log("Servicios cotización: ", servicioCotizacion)
 
       serviciosCotizacion.push(servicioCotizacion);
     }
@@ -448,7 +440,6 @@ const postCotizacion = async (req, res) => {
       mensajeCancelacion
     });
 
-    console.log("cotizacion", saveCotizacion)
 
     await saveCotizacion.save();
 
@@ -556,7 +547,6 @@ const postEmail = async (req, res) => {
               console.error(error);
               return res.status(500).json({ error: 'Error al enviar el correo electrónico.' });
           } else {
-              console.log('Correo electrónico enviado: ' + info.response);
               return res.json({ message: 'Correo electrónico enviado exitosamente.' });
           }
       });

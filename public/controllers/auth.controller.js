@@ -88,7 +88,6 @@ const postAuth = async (req = request, res = response ) => {
 
         const usuario = await User.findOne( { correo })
 
-        console.log(usuario)
 
         if(!usuario){
             return res.status(400).json({
@@ -106,7 +105,6 @@ const postAuth = async (req = request, res = response ) => {
 
         const compararContrasena = bcrypt.compareSync(contrasena, usuario.contrasena)
 
-        console.log("Contraseña: ", usuario.contrasena)
 
         if(!compararContrasena){
 
@@ -121,7 +119,6 @@ const postAuth = async (req = request, res = response ) => {
         // Obtener el rol del usuario
         const rol = await Rol.findById(usuario.id_rol);
 
-        console.log("esto es lo que obtengo de rol: ", rol)
 
         if (!rol) {
           return res.status(404).json({
@@ -214,8 +211,6 @@ const getActualUser = async (req, res) => {
         });
       }
 
-      
-      console.log("Usuario Encontrado:", usuario);
 
       res.json(usuario);
     } catch (error) {
