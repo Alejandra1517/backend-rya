@@ -71,7 +71,6 @@ const getObras = async (req, res) => {
                     valor_unitario: materialId.valor_unitario,
                   };
                 } else {
-                  console.log("Material no encontrado para ID:", materialId._id);
                   return null;
                 }
               })
@@ -149,7 +148,6 @@ const getObrasPorClienteId = async (req, res) => {
                     valor_unitario: materialId.valor_unitario,
                   };
                 } else {
-                  console.log("Material no encontrado para ID:", materialId._id);
                   return null;
                 }
               })
@@ -201,9 +199,6 @@ const putAnulacionObra = async (req, res) => {
 
     const { anulada } = req.body;
 
-
-    console.log("Anulada: ", anulada)
-    console.log("id: ", id)
  
     await Obra.findByIdAndUpdate(id, {
 
