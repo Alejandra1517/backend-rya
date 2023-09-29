@@ -20,7 +20,7 @@ const getServicioById = async (req, res) => {
 }
 
 const postServicio = async (req, res) => {
-    const { descripcion, categoria, valor_unitario, estado, nombre_servicio } = req.body;
+    const { descripcion, categoria, estado, nombre_servicio } = req.body;
   
     let imagen = null; // Inicializa imagen como null por defecto
   
@@ -29,7 +29,7 @@ const postServicio = async (req, res) => {
       imagen = req.file.filename;
     }
   
-    const servicio = new Servicio({ descripcion, categoria, valor_unitario, estado, nombre_servicio, imagen });
+    const servicio = new Servicio({ descripcion, categoria, estado, nombre_servicio, imagen });
   
     try {
       await servicio.save();
@@ -59,7 +59,7 @@ const postServicio = async (req, res) => {
 // )}
 
 const putServicio = async (req, res) => {
-    const { descripcion, categoria, valor_unitario, estado, nombre_servicio } = req.body;
+    const { descripcion, categoria, estado, nombre_servicio } = req.body;
   
     let imagen = null; // Inicializa imagen como null por defecto
   
@@ -72,7 +72,6 @@ const putServicio = async (req, res) => {
       const servicioUpdateData = {
         descripcion,
         categoria,
-        valor_unitario,
         estado,
         nombre_servicio
       };

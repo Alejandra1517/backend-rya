@@ -8,9 +8,9 @@ const ServicioModel = new Schema({
     type: Number,
     required: ['La categoria es obligatoria!']
   },
-  valor_unitario: {
-    type: Number
-  },
+  // valor_unitario: {
+  //   type: Number
+  // },
   estado: {
     type: Number,
     required: ['El estado es obligatorio!']

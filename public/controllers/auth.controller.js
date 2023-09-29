@@ -200,8 +200,6 @@ const getActualUser = async (req, res) => {
 
       const correo = decodedToken.correo;
 
-      console.log("Token Decodificado:", decodedToken);
-      console.log("correo:", correo);
 
       const usuario = await User.findOne({ correo });
 
